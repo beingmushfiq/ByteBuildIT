@@ -1,976 +1,372 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ── Project Data ────────────────────────────────────────────────── */
+/* ── Project data ───────────────────────────────────────────── */
+const PROJECTS = [
+  {
+    num: "01",
+    slug: "ordershield",
+    title: "OrderShield",
+    subtitle: "Order Management System",
+    tags: ["Commerce", "Operations", "Automation"],
+    description:
+      "A unified order intelligence platform that replaced a 7-spreadsheet operation with real-time visibility, automated routing, and exception management.",
+    metrics: [
+      { label: "Processing time", value: "−74%" },
+      { label: "Error rate", value: "−91%" },
+    ],
+    accent: "#2E4AF9",
+    bgShade: "#060D1F",
+    ui: [
+      { label: "Orders today",    value: "1,240", tag: "live" },
+      { label: "Fulfillment",     value: "98.2%", tag: "rate" },
+      { label: "Exceptions",      value: "3",     tag: "active" },
+      { label: "Revenue",         value: "$84k",  tag: "today" },
+    ],
+  },
+  {
+    num: "02",
+    slug: "staffsync",
+    title: "StaffSync",
+    subtitle: "Field Operations Platform",
+    tags: ["Workforce", "Scheduling", "Mobile"],
+    description:
+      "A mobile-first scheduling and dispatch platform for 200+ field staff across 12 sites — replacing manual rosters, WhatsApp coordination, and paper timesheets.",
+    metrics: [
+      { label: "Coordinator time", value: "−60%" },
+      { label: "No-shows",         value: "−83%" },
+    ],
+    accent: "#7C3AED",
+    bgShade: "#0C0A1A",
+    ui: [
+      { label: "Staff active",   value: "214",   tag: "now" },
+      { label: "Sites covered",  value: "12",    tag: "live" },
+      { label: "Open shifts",    value: "4",     tag: "today" },
+      { label: "Attendance",     value: "96.7%", tag: "week" },
+    ],
+  },
+  {
+    num: "03",
+    slug: "invoiceflow",
+    title: "InvoiceFlow",
+    subtitle: "Accounts Receivable Automation",
+    tags: ["Finance", "AI", "Workflow"],
+    description:
+      "An AI-powered accounts receivable system that processes, validates, and routes supplier invoices automatically — cutting a 5-day manual cycle to under 4 hours.",
+    metrics: [
+      { label: "Cycle time",    value: "−96%" },
+      { label: "Manual review", value: "−78%" },
+    ],
+    accent: "#059669",
+    bgShade: "#051510",
+    ui: [
+      { label: "Processed",     value: "2,841", tag: "month" },
+      { label: "Auto-approved", value: "89%",   tag: "rate" },
+      { label: "Queue",         value: "7",     tag: "pending" },
+      { label: "Avg. cycle",    value: "3.8h",  tag: "time" },
+    ],
+  },
+] as const;
 
-interface Project {
-  id: string;
-  number: string;
-  name: string;
-  subtitle: string;
-  category: string;
-  tags: string[];
-  narrative: {
-    before: string;
-    after: string;
-  };
-  gradient: {
-    from: string;
-    via: string;
-    to: string;
-  };
-  accent: string;
+/* ── Project Visual (mock dashboard) ────────────────────────── */
+function ProjectUI({ project }: { project: typeof PROJECTS[number] }) {
+  return (
+    <div
+      style={{
+        backgroundColor: project.bgShade,
+        border: "1px solid rgba(255,255,255,0.07)",
+        borderRadius: "var(--radius-xl)",
+        overflow: "hidden",
+        fontFamily: "var(--font-mono)",
+      }}
+    >
+      {/* Titlebar */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: "var(--space-2)",
+        padding: "10px var(--space-4)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        backgroundColor: "rgba(0,0,0,0.2)",
+      }}>
+        <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#FF5F57" }} />
+        <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#FEBC2E" }} />
+        <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#28C840" }} />
+        <span style={{ marginLeft: "var(--space-3)", fontSize: "9px", letterSpacing: "0.06em", color: "rgba(255,255,255,0.25)" }}>
+          {project.title} — {project.subtitle}
+        </span>
+      </div>
+
+      {/* Stats grid */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr",
+        gap: "1px", backgroundColor: "rgba(255,255,255,0.04)",
+      }}>
+        {project.ui.map(({ label, value, tag }) => (
+          <div key={label} style={{
+            padding: "var(--space-5)",
+            backgroundColor: project.bgShade,
+          }}>
+            <div style={{ fontSize: "8px", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: "var(--space-2)" }}>
+              {label}
+            </div>
+            <div style={{ fontSize: "1.5rem", fontWeight: 600, letterSpacing: "-0.03em", color: "var(--color-light)", lineHeight: 1 }}>
+              {value}
+            </div>
+            <div style={{
+              marginTop: "var(--space-2)", display: "inline-block",
+              fontSize: "8px", letterSpacing: "0.08em", textTransform: "uppercase",
+              padding: "2px 6px", borderRadius: "2px",
+              backgroundColor: `${project.accent}18`,
+              color: project.accent,
+              border: `1px solid ${project.accent}30`,
+            }}>
+              {tag}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom bar */}
+      <div style={{
+        padding: "var(--space-3) var(--space-4)",
+        borderTop: "1px solid rgba(255,255,255,0.04)",
+        display: "flex", alignItems: "center", gap: "var(--space-2)",
+      }}>
+        <div style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: project.accent, flexShrink: 0 }} />
+        <span style={{ fontSize: "9px", letterSpacing: "0.06em", color: "rgba(255,255,255,0.25)" }}>
+          Live · {new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+        </span>
+      </div>
+    </div>
+  );
 }
 
-const PROJECTS: Project[] = [
-  {
-    id: "ordershield",
-    number: "01",
-    name: "OrderShield",
-    subtitle: "Order Management Platform",
-    category: "Commerce / Operations / SaaS",
-    tags: ["Order Processing", "Real-time Tracking", "Multi-channel", "Analytics"],
-    narrative: {
-      before:
-        "From fragmented order operations across spreadsheets, WhatsApp threads, and disconnected tools — orders slipping through the cracks.",
-      after:
-        "To one connected system where every order flows through a single pipeline with real-time visibility and automated routing.",
-    },
-    gradient: {
-      from: "#0B1424",
-      via: "#1A2744",
-      to: "#2E4AF9",
-    },
-    accent: "#2E4AF9",
-  },
-  {
-    id: "clinic-queue",
-    number: "02",
-    name: "Clinic Queue Management",
-    subtitle: "Healthcare Platform",
-    category: "Healthcare / Workflow / Realtime",
-    tags: ["Patient Flow", "Queue Optimization", "Real-time Updates", "Staff Management"],
-    narrative: {
-      before:
-        "From manual patient flow management with paper queues, crowded waiting rooms, and zero visibility into clinic operations.",
-      after:
-        "To real-time healthcare operations where patients are tracked digitally, queues are optimized automatically, and staff have full visibility.",
-    },
-    gradient: {
-      from: "#0B1424",
-      via: "#142233",
-      to: "#1B6B4A",
-    },
-    accent: "#22C55E",
-  },
-  {
-    id: "sherazi-gps",
-    number: "03",
-    name: "Sherazi GPS Tracker",
-    subtitle: "Fleet Management System",
-    category: "Fleet / Logistics / Tracking",
-    tags: ["GPS Tracking", "Route Optimization", "Driver Monitoring", "Fuel Analytics"],
-    narrative: {
-      before:
-        "From scattered fleet data across GPS devices, driver reports, and manual logs — no single view of vehicle operations.",
-      after:
-        "To one operational view with real-time GPS tracking, automated route optimization, and comprehensive fleet analytics.",
-    },
-    gradient: {
-      from: "#0B1424",
-      via: "#1A1E33",
-      to: "#D97706",
-    },
-    accent: "#F59E0B",
-  },
-  {
-    id: "qttenzy",
-    number: "04",
-    name: "Qttenzy",
-    subtitle: "Workforce Management",
-    category: "HR / Attendance / Automation",
-    tags: ["Attendance", "Shift Scheduling", "Payroll Integration", "Biometric"],
-    narrative: {
-      before:
-        "From manual attendance tracking with sign-in sheets, biometric confusion, and payroll reconciliation nightmares.",
-      after:
-        "To automated workforce tracking with biometric attendance, smart scheduling, and seamless payroll integration.",
-    },
-    gradient: {
-      from: "#0B1424",
-      via: "#1E1433",
-      to: "#8B5CF6",
-    },
-    accent: "#A78BFA",
-  },
-];
-
-/* ── Component ────────────────────────────────────────────────────── */
-
+/* ── Main Component ─────────────────────────────────────────── */
 export default function Projects() {
   const sectionRef = useRef<HTMLElement>(null);
 
-  useGSAP(
-    () => {
-      const section = sectionRef.current;
-      if (!section) return;
+  useGSAP(() => {
+    ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: "top 75%",
+      onEnter: () => {
+        gsap.from("[data-proj-header]", { opacity: 0, y: 24, duration: 0.7, ease: "power3.out" });
+      },
+    });
 
-      /* ── Section Header Animation ─── */
-      const sectionNumber = section.querySelector("[data-projects-number]");
-      const sectionHeadline = section.querySelector("[data-projects-headline]");
-      const sectionAccent = section.querySelector("[data-projects-accent]");
-      const sectionSubline = section.querySelector("[data-projects-subline]");
-
-      if (sectionNumber) {
-        gsap.fromTo(
-          sectionNumber,
-          { opacity: 0, x: -12 },
-          {
-            opacity: 1,
-            x: 0,
-            duration: 0.6,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      if (sectionHeadline) {
-        gsap.fromTo(
-          sectionHeadline,
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 80%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      if (sectionAccent) {
-        gsap.fromTo(
-          sectionAccent,
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            duration: 0.7,
-            ease: "power3.inOut",
-            scrollTrigger: {
-              trigger: sectionAccent,
-              start: "top 88%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      if (sectionSubline) {
-        gsap.fromTo(
-          sectionSubline,
-          { opacity: 0, y: 16 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.7,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: sectionSubline,
-              start: "top 90%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      /* ── Per-Project Scene Animations ─── */
-      const scenes = section.querySelectorAll("[data-project-scene]");
-
-      scenes.forEach((scene) => {
-        const idx = scene.getAttribute("data-project-scene");
-
-        // Visual placeholder: scale up + fade in with clip-path reveal
-        const visual = scene.querySelector(`[data-project-visual="${idx}"]`);
-        if (visual) {
-          gsap.fromTo(
-            visual,
-            {
-              opacity: 0,
-              scale: 0.92,
-              clipPath: "inset(8% 8% 8% 8% round 12px)",
-            },
-            {
-              opacity: 1,
-              scale: 1,
-              clipPath: "inset(0% 0% 0% 0% round 12px)",
-              duration: 1.0,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: visual,
-                start: "top 82%",
-                end: "top 30%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-
-          // Inner parallax movement on the gradient overlay
-          const innerGlow = scene.querySelector(
-            `[data-project-glow="${idx}"]`
-          );
-          if (innerGlow) {
-            gsap.fromTo(
-              innerGlow,
-              { yPercent: 15 },
-              {
-                yPercent: -15,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: visual,
-                  start: "top bottom",
-                  end: "bottom top",
-                  scrub: 1.2,
-                },
-              }
-            );
-          }
-        }
-
-        // Project number
-        const number = scene.querySelector(`[data-project-number="${idx}"]`);
-        if (number) {
-          gsap.fromTo(
-            number,
-            { opacity: 0, x: -20 },
-            {
-              opacity: 1,
-              x: 0,
-              duration: 0.7,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: scene,
-                start: "top 75%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        }
-
-        // Project name — large display heading with mask/slide reveal
-        const name = scene.querySelector(`[data-project-name="${idx}"]`);
-        if (name) {
-          gsap.fromTo(
-            name,
-            {
-              opacity: 0,
-              y: 40,
-              clipPath: "inset(0 0 100% 0)",
-            },
-            {
-              opacity: 1,
-              y: 0,
-              clipPath: "inset(0 0 0% 0)",
-              duration: 0.9,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: scene,
-                start: "top 70%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        }
-
-        // Subtitle
-        const subtitle = scene.querySelector(
-          `[data-project-subtitle="${idx}"]`
-        );
-        if (subtitle) {
-          gsap.fromTo(
-            subtitle,
-            { opacity: 0, y: 16 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.6,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: scene,
-                start: "top 68%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        }
-
-        // Category label
-        const category = scene.querySelector(
-          `[data-project-category="${idx}"]`
-        );
-        if (category) {
-          gsap.fromTo(
-            category,
-            { opacity: 0, y: 12 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.5,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: scene,
-                start: "top 66%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        }
-
-        // Tags — staggered entrance
-        const tags = scene.querySelectorAll(
-          `[data-project-tag="${idx}"]`
-        );
-        if (tags.length > 0) {
-          gsap.fromTo(
-            tags,
-            { opacity: 0, y: 10, scale: 0.9 },
-            {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              duration: 0.4,
-              stagger: 0.08,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: scene,
-                start: "top 62%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        }
-
-        // Divider line
-        const divider = scene.querySelector(
-          `[data-project-divider="${idx}"]`
-        );
-        if (divider) {
-          gsap.fromTo(
-            divider,
-            { scaleX: 0 },
-            {
-              scaleX: 1,
-              duration: 0.8,
-              ease: "power3.inOut",
-              scrollTrigger: {
-                trigger: divider,
-                start: "top 85%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        }
-
-        // Before narrative
-        const before = scene.querySelector(
-          `[data-project-before="${idx}"]`
-        );
-        if (before) {
-          gsap.fromTo(
-            before,
-            { opacity: 0, x: -20 },
-            {
-              opacity: 1,
-              x: 0,
-              duration: 0.7,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: before,
-                start: "top 88%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        }
-
-        // After narrative
-        const after = scene.querySelector(
-          `[data-project-after="${idx}"]`
-        );
-        if (after) {
-          gsap.fromTo(
-            after,
-            { opacity: 0, x: -20 },
-            {
-              opacity: 1,
-              x: 0,
-              duration: 0.7,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: after,
-                start: "top 88%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        }
+    // Each project card scrolls in
+    document.querySelectorAll("[data-proj-item]").forEach((el, i) => {
+      ScrollTrigger.create({
+        trigger: el,
+        start: "top 78%",
+        onEnter: () => {
+          gsap.from(el.querySelector("[data-proj-copy]"), {
+            opacity: 0, x: -32, duration: 0.8, ease: "power3.out",
+          });
+          gsap.from(el.querySelector("[data-proj-visual]"), {
+            opacity: 0, x: 32, duration: 0.8, ease: "power3.out", delay: 0.1,
+          });
+        },
       });
-
-      /* ── Section Footer CTA ─── */
-      const footerCta = section.querySelector("[data-projects-footer]");
-      if (footerCta) {
-        gsap.fromTo(
-          footerCta,
-          { opacity: 0, y: 24 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: footerCta,
-              start: "top 88%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-    },
-    { scope: sectionRef }
-  );
+    });
+  }, { scope: sectionRef });
 
   return (
     <section
       ref={sectionRef}
       id="work"
-      className="relative"
-      style={{ backgroundColor: "var(--color-primary)" }}
-      aria-label="Projects — Systems We've Built"
+      style={{ backgroundColor: "var(--color-dark)", position: "relative" }}
     >
-      {/* ── Background dot grid ───────────────────────────────── */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
-        aria-hidden="true"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, var(--color-light) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
+      {/* top rule */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+        background: "linear-gradient(to right, transparent, var(--color-border) 30%, var(--color-border) 70%, transparent)",
+      }} />
 
-      {/* ── Section Header ─────────────────────────────────────── */}
-      <div
-        className="relative z-10 mx-auto"
-        style={{
-          maxWidth: "var(--container-max)",
-          padding: "var(--space-24) var(--space-6) var(--space-12)",
-        }}
-      >
+      <div className="container" style={{ paddingTop: "var(--space-24)", paddingBottom: "var(--space-24)" }}>
+        {/* Section header */}
         <div
-          className="mx-auto"
-          style={{ maxWidth: "var(--container-max)" }}
-        >
-          {/* Section number */}
-          <div
-            data-projects-number
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-sm)",
-              fontWeight: 500,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase" as const,
-              color: "var(--color-accent)",
-              marginBottom: "var(--space-6)",
-            }}
-          >
-            04
-          </div>
-
-          {/* Headline */}
-          <h2
-            data-projects-headline
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 700,
-              fontSize: "clamp(2rem, 5vw, 4.5rem)",
-              lineHeight: 1.05,
-              letterSpacing: "-0.03em",
-              color: "var(--color-light)",
-              marginBottom: "var(--space-4)",
-            }}
-          >
-            SYSTEMS WE&apos;VE
-            <br />
-            <span style={{ color: "var(--color-accent)" }}>BUILT</span>
-          </h2>
-
-          {/* Accent bar */}
-          <div
-            data-projects-accent
-            style={{
-              width: "48px",
-              height: "2px",
-              backgroundColor: "var(--color-accent)",
-              marginTop: "var(--space-4)",
-              marginBottom: "var(--space-8)",
-              transformOrigin: "left center",
-            }}
-          />
-
-          {/* Subline */}
-          <p
-            data-projects-subline
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "clamp(1rem, 1.3vw, 1.125rem)",
-              lineHeight: 1.7,
-              color: "var(--color-muted)",
-              maxWidth: "560px",
-            }}
-          >
-            Each system begins with a broken process and ends with connected
-            software that changes how a business operates.
-          </p>
-        </div>
-      </div>
-
-      {/* ── Project Scenes ─────────────────────────────────────── */}
-      {PROJECTS.map((project) => (
-        <article
-          key={project.id}
-          data-project-scene={project.number}
-          className="relative mx-auto overflow-hidden"
+          data-proj-header
           style={{
-            maxWidth: "var(--container-max)",
-            padding: "0 var(--space-6)",
-            marginBottom: "var(--space-24)",
+            display: "flex", alignItems: "flex-end", justifyContent: "space-between",
+            marginBottom: "var(--space-20)",
+            flexWrap: "wrap", gap: "var(--space-4)",
           }}
         >
-          {/* Desktop: 2-column layout | Mobile: stacked */}
-          <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-12 xl:gap-16">
-            {/* ── Left Column: Visual Placeholder ────────────── */}
+          <div>
+            <span className="section-label" style={{ marginBottom: "var(--space-4)", display: "flex" }}>
+              Selected work
+            </span>
+            <h2 style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(2rem, 4vw, 3rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              color: "var(--color-light)",
+              lineHeight: 1.05,
+            }}>
+              Systems we&apos;ve shipped.
+            </h2>
+          </div>
+          <Link
+            href="/work"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-xs)",
+              fontWeight: 500,
+              letterSpacing: "0.07em",
+              textTransform: "uppercase",
+              color: "var(--color-muted)",
+              textDecoration: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-2)",
+              transition: "color 200ms ease",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--color-light)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--color-muted)")}
+          >
+            All projects →
+          </Link>
+        </div>
+
+        {/* Project list */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-32)" }}>
+          {PROJECTS.map((project, i) => (
             <div
-              data-project-visual={project.number}
-              className="relative overflow-hidden"
+              key={project.slug}
+              data-proj-item
               style={{
-                borderRadius: "var(--radius-xl)",
-                aspectRatio: "16 / 10",
-                minHeight: "280px",
+                display: "grid",
+                gridTemplateColumns: "1fr",
+                gap: "var(--space-12)",
+                alignItems: "center",
               }}
+              className={`lg:!grid-cols-[1fr_1fr] ${i % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""}`}
             >
-              {/* Base gradient */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(135deg, ${project.gradient.from} 0%, ${project.gradient.via} 50%, ${project.gradient.to} 100%)`,
-                }}
-              />
+              {/* Copy */}
+              <div data-proj-copy>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "var(--space-4)",
+                  marginBottom: "var(--space-6)",
+                }}>
+                  <span style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-xs)",
+                    fontWeight: 600,
+                    letterSpacing: "0.1em",
+                    color: project.accent,
+                  }}>
+                    {project.num}
+                  </span>
+                  <div style={{ height: "1px", flex: 1, backgroundColor: "var(--color-border)" }} />
+                </div>
 
-              {/* Animated glow overlay for parallax */}
-              <div
-                data-project-glow={project.number}
-                className="absolute inset-0"
-                style={{
-                  background: `radial-gradient(ellipse 70% 60% at 60% 50%, ${project.accent}22 0%, transparent 100%)`,
-                }}
-              />
-
-              {/* Grid pattern overlay */}
-              <div
-                className="absolute inset-0 opacity-[0.06]"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(var(--color-light) 1px, transparent 1px), linear-gradient(90deg, var(--color-light) 1px, transparent 1px)",
-                  backgroundSize: "48px 48px",
-                }}
-              />
-
-              {/* Corner accent lines */}
-              <div
-                className="absolute"
-                style={{
-                  top: "16px",
-                  left: "16px",
-                  width: "40px",
-                  height: "40px",
-                  borderTop: `2px solid ${project.accent}55`,
-                  borderLeft: `2px solid ${project.accent}55`,
-                }}
-              />
-              <div
-                className="absolute"
-                style={{
-                  bottom: "16px",
-                  right: "16px",
-                  width: "40px",
-                  height: "40px",
-                  borderBottom: `2px solid ${project.accent}55`,
-                  borderRight: `2px solid ${project.accent}55`,
-                }}
-              />
-
-              {/* Project number watermark */}
-              <div
-                className="absolute select-none"
-                style={{
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
+                <h3 style={{
                   fontFamily: "var(--font-display)",
+                  fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)",
                   fontWeight: 700,
-                  fontSize: "clamp(6rem, 14vw, 12rem)",
-                  lineHeight: 1,
-                  color: `${project.accent}0A`,
-                  letterSpacing: "-0.04em",
-                }}
-                aria-hidden="true"
-              >
-                {project.number}
-              </div>
+                  letterSpacing: "-0.03em",
+                  color: "var(--color-light)",
+                  lineHeight: 1.1,
+                  marginBottom: "var(--space-2)",
+                }}>
+                  {project.title}
+                </h3>
 
-              {/* Project name centered */}
-              <div
-                className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
-                style={{ zIndex: 1 }}
-              >
-                <span
+                <p style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-xs)",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--color-muted)",
+                  marginBottom: "var(--space-5)",
+                }}>
+                  {project.subtitle}
+                </p>
+
+                {/* Tags */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", marginBottom: "var(--space-6)" }}>
+                  {project.tags.map(tag => (
+                    <span key={tag} className="tag">{tag}</span>
+                  ))}
+                </div>
+
+                <p style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-sm)",
+                  lineHeight: 1.75,
+                  color: "var(--color-muted)",
+                  marginBottom: "var(--space-8)",
+                  maxWidth: "480px",
+                }}>
+                  {project.description}
+                </p>
+
+                {/* Metrics */}
+                <div style={{ display: "flex", gap: "var(--space-8)", marginBottom: "var(--space-8)" }}>
+                  {project.metrics.map(m => (
+                    <div key={m.label}>
+                      <div style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "1.75rem",
+                        fontWeight: 700,
+                        letterSpacing: "-0.03em",
+                        color: project.accent,
+                        lineHeight: 1,
+                        marginBottom: "var(--space-1)",
+                      }}>
+                        {m.value}
+                      </div>
+                      <div style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "10px",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        color: "var(--color-muted)",
+                      }}>
+                        {m.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Link
+                  href={`/work/${project.slug}`}
+                  data-cursor-type="project"
                   style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
                     fontFamily: "var(--font-mono)",
                     fontSize: "var(--text-xs)",
                     fontWeight: 500,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase" as const,
+                    letterSpacing: "0.07em",
+                    textTransform: "uppercase",
                     color: project.accent,
-                    marginBottom: "var(--space-3)",
-                    opacity: 0.85,
+                    textDecoration: "none",
+                    transition: "opacity 200ms ease",
                   }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
                 >
-                  {project.subtitle}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 700,
-                    fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
-                    lineHeight: 1.1,
-                    letterSpacing: "-0.02em",
-                    color: "var(--color-light)",
-                  }}
-                >
-                  {project.name}
-                </span>
+                  View case study ↗
+                </Link>
+              </div>
+
+              {/* Visual */}
+              <div data-proj-visual>
+                <ProjectUI project={project} />
               </div>
             </div>
-
-            {/* ── Right Column: Project Details ──────────────── */}
-            <div
-              className="flex flex-col"
-              style={{ padding: "var(--space-4) 0" }}
-            >
-              {/* Project number + name */}
-              <div className="mb-2 flex items-baseline gap-3">
-                <span
-                  data-project-number={project.number}
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-sm)",
-                    fontWeight: 500,
-                    letterSpacing: "0.06em",
-                    color: project.accent,
-                    flexShrink: 0,
-                  }}
-                >
-                  {project.number}
-                </span>
-
-                <span
-                  style={{
-                    width: "24px",
-                    height: "1px",
-                    backgroundColor: "var(--color-gray-600)",
-                    flexShrink: 0,
-                  }}
-                  aria-hidden="true"
-                />
-              </div>
-
-              {/* Project name — large display */}
-              <h3
-                data-project-name={project.number}
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 700,
-                  fontSize: "clamp(1.75rem, 3.5vw, 3rem)",
-                  lineHeight: 1.05,
-                  letterSpacing: "-0.03em",
-                  color: "var(--color-light)",
-                  marginBottom: "var(--space-3)",
-                }}
-              >
-                {project.name}
-              </h3>
-
-              {/* Subtitle */}
-              <p
-                data-project-subtitle={project.number}
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 600,
-                  fontSize: "var(--text-lg)",
-                  lineHeight: 1.3,
-                  color: "var(--color-neutral)",
-                  marginBottom: "var(--space-2)",
-                }}
-              >
-                {project.subtitle}
-              </p>
-
-              {/* Category */}
-              <p
-                data-project-category={project.number}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-xs)",
-                  fontWeight: 500,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase" as const,
-                  color: "var(--color-muted)",
-                  marginBottom: "var(--space-5)",
-                }}
-              >
-                {project.category}
-              </p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2" style={{ marginBottom: "var(--space-6)" }}>
-                {project.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    data-project-tag={project.number}
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      letterSpacing: "0.03em",
-                      color: project.accent,
-                      backgroundColor: `${project.accent}10`,
-                      border: `1px solid ${project.accent}25`,
-                      borderRadius: "var(--radius-full)",
-                      padding: "4px 12px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* Divider */}
-              <div
-                data-project-divider={project.number}
-                style={{
-                  width: "100%",
-                  height: "1px",
-                  backgroundColor: "var(--color-gray-700)",
-                  transformOrigin: "left center",
-                  marginBottom: "var(--space-6)",
-                }}
-              />
-
-              {/* Before → After narrative */}
-              <div className="flex flex-col gap-4">
-                {/* Before */}
-                <div
-                  data-project-before={project.number}
-                  style={{
-                    display: "flex",
-                    gap: "var(--space-3)",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase" as const,
-                      color: "var(--color-gray-500)",
-                      flexShrink: 0,
-                      marginTop: "3px",
-                      padding: "2px 8px",
-                      border: "1px solid var(--color-gray-700)",
-                      borderRadius: "var(--radius-sm)",
-                    }}
-                  >
-                    BEFORE
-                  </span>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "var(--text-sm)",
-                      lineHeight: 1.65,
-                      color: "var(--color-muted)",
-                    }}
-                  >
-                    {project.narrative.before}
-                  </p>
-                </div>
-
-                {/* Arrow */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "var(--space-3)",
-                    paddingLeft: "var(--space-1)",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "1px",
-                      height: "16px",
-                      backgroundColor: "var(--color-gray-700)",
-                    }}
-                  />
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      color: project.accent,
-                      fontSize: "var(--text-sm)",
-                      lineHeight: 1,
-                    }}
-                  >
-                    ↓
-                  </span>
-                </div>
-
-                {/* After */}
-                <div
-                  data-project-after={project.number}
-                  style={{
-                    display: "flex",
-                    gap: "var(--space-3)",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase" as const,
-                      color: project.accent,
-                      flexShrink: 0,
-                      marginTop: "3px",
-                      padding: "2px 8px",
-                      backgroundColor: `${project.accent}12`,
-                      border: `1px solid ${project.accent}30`,
-                      borderRadius: "var(--radius-sm)",
-                    }}
-                  >
-                    AFTER
-                  </span>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "var(--text-sm)",
-                      lineHeight: 1.65,
-                      color: "var(--color-neutral)",
-                    }}
-                  >
-                    {project.narrative.after}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Scene divider — subtle gradient line */}
-          <div
-            className="mx-auto mt-12"
-            style={{
-              width: "60%",
-              height: "1px",
-              background:
-                "linear-gradient(90deg, transparent 0%, var(--color-gray-700) 50%, transparent 100%)",
-            }}
-            aria-hidden="true"
-          />
-        </article>
-      ))}
-
-      {/* ── Section Footer CTA ────────────────────────────────── */}
-      <div
-        data-projects-footer
-        className="relative z-10 mx-auto text-center"
-        style={{
-          maxWidth: "var(--container-max)",
-          padding: "var(--space-8) var(--space-6) var(--space-32)",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 600,
-            fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
-            lineHeight: 1.3,
-            letterSpacing: "-0.02em",
-            color: "var(--color-muted)",
-            marginBottom: "var(--space-8)",
-          }}
-        >
-          YOUR SYSTEM
-          <span style={{ color: "var(--color-accent)" }}> COULD BE NEXT.</span>
-        </p>
-
-        <a
-          href="#contact"
-          className="btn btn-primary"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-sm)",
-            fontWeight: 500,
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-            padding: "var(--space-3) var(--space-8)",
-            borderRadius: "var(--radius-md)",
-            backgroundColor: "var(--color-accent)",
-            color: "#fff",
-            border: "1px solid var(--color-accent)",
-            cursor: "pointer",
-            textDecoration: "none",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "var(--space-2)",
-            transition: "all 300ms cubic-bezier(0.25, 0.1, 0.25, 1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--color-accent-hover)";
-            e.currentTarget.style.boxShadow = "var(--shadow-glow)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--color-accent)";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          LET&apos;S BUILD YOURS &rarr;
-        </a>
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -1,232 +1,314 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ── CMS-editable data ─────────────────────────────────────────── */
-
-interface AboutContent {
-  sectionNumber: string;
-  headline: string;
-  description: string;
-  pillars: string[];
-}
-
-const CONTENT: AboutContent = {
-  sectionNumber: "04",
-  headline: "WE LIKE DIFFICULT PROBLEMS.",
-  description:
-    "ByteBuildIT works at the intersection of business operations, product design and software engineering.",
-  pillars: ["CURIOUS.", "PRECISE.", "ACCOUNTABLE."],
-};
-
-/* ── Component ──────────────────────────────────────────────────── */
+const STAGES = [
+  {
+    num: "01",
+    label: "Understand",
+    headline: "We start with your operation, not a template.",
+    body: "Before writing a line of code, we map your actual process — every step, every handoff, every failure point. Most problems are simpler than they appear, once you see the whole picture.",
+    accent: "#2E4AF9",
+  },
+  {
+    num: "02",
+    label: "Design",
+    headline: "Architecture before aesthetics.",
+    body: "System design is the work. We design the data model, the workflows, the integration points, and the user experience — in that order. The interface emerges from the logic.",
+    accent: "#7C3AED",
+  },
+  {
+    num: "03",
+    label: "Engineer",
+    headline: "Built to last, not to demo.",
+    body: "We build with the operational requirements in mind — reliability, performance, security, and maintainability. Software that works at 3am on a Monday.",
+    accent: "#059669",
+  },
+  {
+    num: "04",
+    label: "Evolve",
+    headline: "Systems improve as they're used.",
+    body: "The first version is never the final version. We design for extensibility and stay engaged with clients as their operations change. Software that grows with you.",
+    accent: "#D97706",
+  },
+] as const;
 
 export default function About() {
-  const sectionRef = useRef<HTMLElement>(null);
+  const sectionRef  = useRef<HTMLElement>(null);
+  const [activeStage, setActiveStage] = useState(0);
+  const stageBodyRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(
-    () => {
-      const section = sectionRef.current;
-      if (!section) return;
+  useGSAP(() => {
+    ScrollTrigger.create({
+      trigger: "[data-ab-approach]",
+      start: "top 70%",
+      onEnter: () => {
+        gsap.from("[data-ab-approach-tag]",  { opacity: 0, y: 16, duration: 0.6, ease: "power3.out" });
+        gsap.from("[data-ab-approach-h]",    { opacity: 0, y: 32, duration: 0.7, delay: 0.1, ease: "power3.out" });
+        gsap.from("[data-ab-stage-btn]",     { opacity: 0, y: 16, duration: 0.5, stagger: 0.1, delay: 0.25, ease: "power3.out" });
+        gsap.from("[data-ab-stage-panel]",   { opacity: 0, x: 20, duration: 0.6, delay: 0.4, ease: "power3.out" });
+      },
+    });
 
-      // --- Section number slide-in ---
-      const sectionNumber = section.querySelector("[data-section-number]");
-      if (sectionNumber) {
-        gsap.fromTo(
-          sectionNumber,
-          { opacity: 0, x: -12 },
-          {
-            opacity: 1,
-            x: 0,
-            duration: 0.6,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
+    ScrollTrigger.create({
+      trigger: "[data-ab-about]",
+      start: "top 75%",
+      onEnter: () => {
+        gsap.from("[data-ab-about-tag]",  { opacity: 0, y: 16, duration: 0.6, ease: "power3.out" });
+        gsap.from("[data-ab-about-h]",    { opacity: 0, y: 40, duration: 0.8, delay: 0.1, ease: "power3.out" });
+        gsap.from("[data-ab-about-copy]", { opacity: 0, y: 20, duration: 0.6, delay: 0.3, ease: "power3.out" });
+        gsap.from("[data-ab-about-cta]",  { opacity: 0, y: 12, duration: 0.5, delay: 0.5, ease: "power3.out" });
+      },
+    });
+  }, { scope: sectionRef });
 
-      // --- Headline reveal ---
-      const headline = section.querySelector("[data-about-headline]");
-      if (headline) {
-        gsap.fromTo(
-          headline,
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 80%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
+  const handleStage = (i: number) => {
+    const body = stageBodyRef.current;
+    if (!body) { setActiveStage(i); return; }
+    gsap.to(body, {
+      opacity: 0, y: 8, duration: 0.15, ease: "power2.in",
+      onComplete: () => {
+        setActiveStage(i);
+        gsap.fromTo(body, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.25, ease: "power3.out" });
+      },
+    });
+  };
 
-      // --- Accent bar grow ---
-      const accentBar = section.querySelector("[data-about-accent]");
-      if (accentBar) {
-        gsap.fromTo(
-          accentBar,
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            duration: 0.6,
-            ease: "power2.inOut",
-            scrollTrigger: {
-              trigger: accentBar,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      // --- Description fade-in ---
-      const description = section.querySelector("[data-about-description]");
-      if (description) {
-        gsap.fromTo(
-          description,
-          { opacity: 0, y: 20 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.7,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: description,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      // --- Pillar words staggered reveal ---
-      const pillars = section.querySelectorAll("[data-about-pillar]");
-      if (pillars.length > 0) {
-        gsap.fromTo(
-          pillars,
-          { opacity: 0, y: 24, x: -12 },
-          {
-            opacity: 1,
-            y: 0,
-            x: 0,
-            duration: 0.6,
-            ease: "power3.out",
-            stagger: 0.15,
-            scrollTrigger: {
-              trigger: pillars[0],
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-    },
-    { scope: sectionRef }
-  );
+  const stage = STAGES[activeStage];
 
   return (
     <section
       ref={sectionRef}
-      id="about"
-      className="section"
-      style={{ backgroundColor: "var(--color-primary)" }}
-      aria-label="About"
+      style={{ backgroundColor: "var(--color-primary)", position: "relative" }}
     >
-      <div className="container mx-auto" style={{ maxWidth: "var(--container-max)" }}>
-        {/* Section number */}
-        <div
-          data-section-number
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-sm)",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase" as const,
-            color: "var(--color-accent)",
-            marginBottom: "var(--space-8)",
-          }}
-        >
-          {CONTENT.sectionNumber}
-        </div>
+      {/* ── APPROACH ──────────────────────────────────────── */}
+      <div
+        data-ab-approach
+        id="approach-detail"
+        className="section"
+        style={{ borderTop: "1px solid var(--color-border)" }}
+      >
+        <div className="container">
+          <span data-ab-approach-tag className="section-label" style={{ marginBottom: "var(--space-6)", display: "flex" }}>
+            Our approach
+          </span>
+          <h2
+            data-ab-approach-h
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(2rem, 4vw, 3rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              color: "var(--color-light)",
+              lineHeight: 1.05,
+              marginBottom: "var(--space-16)",
+            }}
+          >
+            Four stages.<br />
+            No shortcuts.
+          </h2>
 
-        <div className="grid items-start gap-12 lg:grid-cols-[1fr_auto] lg:gap-16">
-          {/* Left: Copy */}
-          <div className="flex flex-col gap-6 lg:gap-8">
-            {/* Headline */}
+          <div style={{
+            display: "grid", gap: "var(--space-8)",
+            gridTemplateColumns: "1fr",
+          }}
+            className="lg:!grid-cols-[auto_1fr]"
+          >
+            {/* Stage selector */}
+            <div style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "var(--space-2)",
+              overflowX: "auto",
+            }}
+              className="lg:!flex-col"
+            >
+              {STAGES.map((s, i) => (
+                <button
+                  key={s.num}
+                  data-ab-stage-btn
+                  onClick={() => handleStage(i)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-3)",
+                    padding: "var(--space-3) var(--space-4)",
+                    border: "1px solid transparent",
+                    borderRadius: "var(--radius-lg)",
+                    backgroundColor: activeStage === i ? `${s.accent}10` : "transparent",
+                    borderColor: activeStage === i ? `${s.accent}35` : "transparent",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "all 200ms ease",
+                  }}
+                  onMouseEnter={e => { if (activeStage !== i) e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.03)"; }}
+                  onMouseLeave={e => { if (activeStage !== i) e.currentTarget.style.backgroundColor = "transparent"; }}
+                >
+                  <span style={{
+                    fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 600,
+                    letterSpacing: "0.08em", color: activeStage === i ? s.accent : "var(--color-gray-700)",
+                    transition: "color 200ms ease",
+                  }}>
+                    {s.num}
+                  </span>
+                  <span style={{
+                    fontFamily: "var(--font-body)", fontSize: "var(--text-sm)",
+                    fontWeight: activeStage === i ? 500 : 400,
+                    color: activeStage === i ? "var(--color-light)" : "var(--color-muted)",
+                    transition: "color 200ms ease",
+                  }}>
+                    {s.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Stage content */}
+            <div
+              data-ab-stage-panel
+              ref={stageBodyRef}
+              style={{
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-xl)",
+                backgroundColor: "rgba(11,18,32,0.5)",
+                padding: "var(--space-10)",
+                minHeight: "240px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-5)" }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: stage.accent }} />
+                <span style={{
+                  fontFamily: "var(--font-mono)", fontSize: "10px",
+                  letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-muted)",
+                }}>
+                  Stage {stage.num}
+                </span>
+              </div>
+              <h3 style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.025em",
+                color: "var(--color-light)",
+                lineHeight: 1.2,
+                marginBottom: "var(--space-5)",
+              }}>
+                {stage.headline}
+              </h3>
+              <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                lineHeight: 1.75,
+                color: "var(--color-muted)",
+                maxWidth: "520px",
+              }}>
+                {stage.body}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── ABOUT ─────────────────────────────────────────── */}
+      <div
+        data-ab-about
+        id="about"
+        className="section"
+        style={{
+          borderTop: "1px solid var(--color-border)",
+          backgroundColor: "var(--color-dark)",
+        }}
+      >
+        <div className="container">
+          <div style={{ maxWidth: "800px" }}>
+            <span data-ab-about-tag className="section-label" style={{ marginBottom: "var(--space-8)", display: "flex" }}>
+              About ByteBuildIT
+            </span>
+
             <h2
-              data-about-headline
+              data-ab-about-h
               style={{
                 fontFamily: "var(--font-display)",
+                fontSize: "clamp(3rem, 8vw, 7rem)",
                 fontWeight: 700,
-                fontSize: "clamp(2rem, 5vw, 4.5rem)",
-                lineHeight: 1.05,
-                letterSpacing: "-0.03em",
-                color: "var(--color-light)",
-                marginBottom: "var(--space-2)",
+                letterSpacing: "-0.04em",
+                lineHeight: 0.95,
+                marginBottom: "var(--space-10)",
               }}
             >
-              {CONTENT.headline}
+              <span style={{ color: "var(--color-light)" }}>We like</span>
+              <br />
+              <span style={{ color: "var(--color-accent)" }}>difficult</span>
+              <br />
+              <span style={{ color: "var(--color-light)" }}>problems.</span>
             </h2>
 
-            {/* Accent bar */}
             <div
-              data-about-accent
+              data-ab-about-copy
               style={{
-                width: "48px",
-                height: "2px",
-                backgroundColor: "var(--color-accent)",
-                transformOrigin: "left center",
-              }}
-            />
-
-            {/* Description */}
-            <p
-              data-about-description
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: "clamp(1rem, 1.5vw, 1.25rem)",
-                lineHeight: 1.7,
-                color: "var(--color-muted)",
-                maxWidth: "560px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "var(--space-5)",
+                maxWidth: "540px",
+                marginBottom: "var(--space-12)",
               }}
             >
-              {CONTENT.description}
-            </p>
-          </div>
+              <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(1rem, 1.4vw, 1.1rem)",
+                lineHeight: 1.75,
+                color: "var(--color-muted)",
+              }}>
+                ByteBuildIT is a software product studio. We build the systems that
+                let businesses operate at a level their current tools can&apos;t support.
+              </p>
+              <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(1rem, 1.4vw, 1.1rem)",
+                lineHeight: 1.75,
+                color: "var(--color-muted)",
+              }}>
+                The work we take on tends to be operationally complex — processes that
+                don&apos;t fit neatly into an existing SaaS product, or organizations that
+                have outgrown the tools they started with.
+              </p>
+            </div>
 
-          {/* Right: Stacked Pillar Words */}
-          <div className="flex flex-col gap-4 pt-2 lg:pt-0">
-            {CONTENT.pillars.map((pillar) => (
-              <div
-                key={pillar}
-                data-about-pillar
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "clamp(2rem, 4vw, 3.5rem)",
-                  fontWeight: 500,
-                  letterSpacing: "0.12em",
-                  lineHeight: 1.1,
-                  color: "var(--color-light)",
-                  opacity: 0,
-                }}
-              >
-                {pillar}
-              </div>
-            ))}
+            <a
+              data-ab-about-cta
+              href="#contact"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-xs)",
+                fontWeight: 500,
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                color: "var(--color-white)",
+                backgroundColor: "var(--color-accent)",
+                padding: "0.75rem 1.5rem",
+                borderRadius: "var(--radius-md)",
+                textDecoration: "none",
+                transition: "background-color 200ms ease, box-shadow 200ms ease",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = "var(--color-accent-hover)";
+                e.currentTarget.style.boxShadow = "var(--shadow-glow)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = "var(--color-accent)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              Bring us the problem ↗
+            </a>
           </div>
         </div>
       </div>

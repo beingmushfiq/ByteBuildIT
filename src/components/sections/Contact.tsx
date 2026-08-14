@@ -1,891 +1,402 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ── Types ──────────────────────────────────────────────────────── */
-
-interface FormData {
-  category: string;
-  description: string;
-  name: string;
-  email: string;
-  phone: string;
-  company: string;
-  budget: string;
-  timeline: string;
-}
-
-interface StepErrors {
-  [key: string]: string;
-}
-
-/* ── CMS-editable data ─────────────────────────────────────────── */
-
-interface ContactContent {
-  sectionNumber: string;
-  headline: string;
-  body: string;
-  cta: string;
-  categories: string[];
-}
-
-const CONTENT: ContactContent = {
-  sectionNumber: "05",
-  headline: "WHAT'S WASTING YOUR TIME?",
-  body: "Tell us where your process breaks. We'll figure out what it could become.",
-  cta: "BRING US THE PROBLEM →",
-  categories: [
-    "Manual operations",
-    "Business software",
-    "Automation",
-    "AI",
-    "New product",
-    "Modernization",
-    "Other",
-  ],
-};
-
-/* ── Component ──────────────────────────────────────────────────── */
+const FIELDS = [
+  { id: "name",    label: "Your name",    type: "text",  placeholder: "Jane Smith",                required: true  },
+  { id: "email",   label: "Work email",   type: "email", placeholder: "jane@company.com",           required: true  },
+  { id: "company", label: "Company",      type: "text",  placeholder: "Acme Corp",                  required: false },
+  { id: "problem", label: "What's not working?", type: "textarea", placeholder: "Describe the process that's costing you time, money, or errors...", required: true },
+] as const;
 
 export default function Contact() {
-  const [step, setStep] = useState(1);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [errors, setErrors] = useState<StepErrors>({});
+  const sectionRef  = useRef<HTMLElement>(null);
+  const panelRef    = useRef<HTMLDivElement>(null);
+  const overlayRef  = useRef<HTMLDivElement>(null);
+  const [open, setOpen]   = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [form, setForm] = useState({ name: "", email: "", company: "", problem: "" });
 
-  const [form, setForm] = useState<FormData>({
-    category: "",
-    description: "",
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    budget: "",
-    timeline: "",
-  });
+  useGSAP(() => {
+    ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: "top 75%",
+      onEnter: () => {
+        gsap.from("[data-ct-tag]",  { opacity: 0, y: 16, duration: 0.6, ease: "power3.out" });
+        gsap.from("[data-ct-h1]",   { opacity: 0, y: 40, duration: 0.8, delay: 0.1, ease: "power3.out" });
+        gsap.from("[data-ct-sub]",  { opacity: 0, y: 20, duration: 0.6, delay: 0.3, ease: "power3.out" });
+        gsap.from("[data-ct-cta]",  { opacity: 0, y: 12, duration: 0.5, delay: 0.5, ease: "power3.out" });
+      },
+    });
+  }, { scope: sectionRef });
 
-  const sectionRef = useRef<HTMLElement>(null);
-  const formStepRef = useRef<HTMLDivElement>(null);
-
-  /* ── Field update ────────────────────────────────────────────── */
-
-  const updateField = useCallback(
-    (field: keyof FormData, value: string) => {
-      setForm((prev) => ({ ...prev, [field]: value }));
-      // Clear error for this field on change
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    },
-    []
-  );
-
-  /* ── Validation ──────────────────────────────────────────────── */
-
-  const validateStep = useCallback(
-    (currentStep: number): boolean => {
-      const newErrors: StepErrors = {};
-
-      if (currentStep === 1) {
-        if (!form.category) {
-          newErrors.category = "Please select a problem category";
-        }
-      }
-
-      if (currentStep === 2) {
-        if (!form.description.trim()) {
-          newErrors.description = "Please describe your problem";
-        }
-      }
-
-      if (currentStep === 3) {
-        if (!form.name.trim()) {
-          newErrors.name = "Name is required";
-        }
-        if (!form.email.trim()) {
-          newErrors.email = "Email is required";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-          newErrors.email = "Please enter a valid email";
-        }
-        if (!form.company.trim()) {
-          newErrors.company = "Company is required";
-        }
-      }
-
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    },
-    [form]
-  );
-
-  /* ── Step navigation ─────────────────────────────────────────── */
-
-  const animateStepTransition = useCallback(
-    (direction: "next" | "prev") => {
-      if (!formStepRef.current) return;
-
-      const exitX = direction === "next" ? -30 : 30;
-
-      gsap.to(formStepRef.current, {
-        opacity: 0,
-        x: exitX,
-        duration: 0.25,
-        ease: "power2.in",
-        onComplete: () => {
-          setStep((prev) => (direction === "next" ? prev + 1 : prev - 1));
-        },
-      });
-    },
-    []
-  );
-
-  const handleNext = useCallback(() => {
-    if (!validateStep(step)) return;
-    animateStepTransition("next");
-  }, [step, validateStep, animateStepTransition]);
-
-  const handlePrev = useCallback(() => {
-    animateStepTransition("prev");
-  }, [animateStepTransition]);
-
-  const handleSubmit = useCallback(() => {
-    if (!validateStep(3)) return;
-    setIsSubmitted(true);
-  }, [validateStep]);
-
-  /* ── GSAP animations ─────────────────────────────────────────── */
-
-  useGSAP(
-    () => {
-      const section = sectionRef.current;
-      if (!section) return;
-
-      // --- Section number slide-in ---
-      const sectionNumber = section.querySelector("[data-section-number]");
-      if (sectionNumber) {
-        gsap.fromTo(
-          sectionNumber,
-          { opacity: 0, x: -12 },
-          {
-            opacity: 1,
-            x: 0,
-            duration: 0.6,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      // --- Headline reveal ---
-      const headline = section.querySelector("[data-contact-headline]");
-      if (headline) {
-        gsap.fromTo(
-          headline,
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 80%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      // --- Body and CTA fade-in ---
-      const bodyElements = section.querySelectorAll("[data-contact-body]");
-      if (bodyElements.length > 0) {
-        gsap.fromTo(
-          bodyElements,
-          { opacity: 0, y: 20 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.7,
-            ease: "power3.out",
-            stagger: 0.1,
-            scrollTrigger: {
-              trigger: bodyElements[0],
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-
-      // --- Form card entrance ---
-      const formCard = section.querySelector("[data-contact-form-card]");
-      if (formCard) {
-        gsap.fromTo(
-          formCard,
-          { opacity: 0, y: 24, scale: 0.98 },
-          {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            duration: 0.7,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: formCard,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-    },
-    { scope: sectionRef }
-  );
-
-  /* ── Animate step enter ──────────────────────────────────────── */
-
-  useGSAP(
-    () => {
-      if (!formStepRef.current) return;
-
-      gsap.fromTo(
-        formStepRef.current,
-        { opacity: 0, x: 30 },
-        { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }
-      );
-    },
-    { scope: formStepRef, dependencies: [step] }
-  );
-
-  /* ── Render helpers ───────────────────────────────────────────── */
-
-  const inputStyle = (hasError: boolean) =>
-    ({
-      width: "100%",
-      fontFamily: "var(--font-body)",
-      fontSize: "var(--text-sm)",
-      lineHeight: 1.6,
-      color: "var(--color-light)",
-      backgroundColor: "rgba(255, 255, 255, 0.04)",
-      border: `1px solid ${hasError ? "#EF4444" : "var(--color-gray-700)"}`,
-      borderRadius: "var(--radius-md)",
-      padding: "var(--space-3) var(--space-4)",
-      outline: "none",
-      transition: "border-color 300ms cubic-bezier(0.25, 0.1, 0.25, 1)",
-    } as const);
-
-  const labelStyle = {
-    fontFamily: "var(--font-mono)",
-    fontSize: "var(--text-xs)",
-    fontWeight: 500,
-    letterSpacing: "0.08em",
-    textTransform: "uppercase" as const,
-    color: "var(--color-muted)",
-    marginBottom: "var(--space-2)",
-    display: "block",
+  const openPanel = () => {
+    setOpen(true);
+    const panel   = panelRef.current;
+    const overlay = overlayRef.current;
+    if (!panel || !overlay) return;
+    gsap.set(panel,   { x: "100%" });
+    gsap.set(overlay, { opacity: 0, display: "block" });
+    gsap.to(overlay, { opacity: 1, duration: 0.25, ease: "power2.out" });
+    gsap.to(panel,   { x: "0%", duration: 0.45, ease: "power3.out" });
+    document.body.style.overflow = "hidden";
   };
 
-  const errorStyle = {
-    fontFamily: "var(--font-mono)",
-    fontSize: "11px",
-    color: "#EF4444",
-    marginTop: "var(--space-1)",
+  const closePanel = () => {
+    const panel   = panelRef.current;
+    const overlay = overlayRef.current;
+    if (!panel || !overlay) return;
+    gsap.to(panel,   { x: "100%", duration: 0.35, ease: "power3.in" });
+    gsap.to(overlay, {
+      opacity: 0, duration: 0.3, ease: "power2.in",
+      onComplete: () => {
+        gsap.set(overlay, { display: "none" });
+        setOpen(false);
+        document.body.style.overflow = "";
+      },
+    });
   };
 
-  const stepIndicators = [1, 2, 3];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setStatus("success");
+        setForm({ name: "", email: "", company: "", problem: "" });
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  };
 
   return (
-    <section
-      ref={sectionRef}
-      id="contact"
-      className="section relative overflow-hidden"
-      style={{ backgroundColor: "var(--color-primary)" }}
-      aria-label="Contact"
-    >
-      {/* Subtle grid pattern */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--color-light) 1px, transparent 1px), linear-gradient(90deg, var(--color-light) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
+    <>
+      {/* ── Section ───────────────────────────────────────── */}
+      <section
+        ref={sectionRef}
+        id="contact"
+        className="section"
+        style={{ backgroundColor: "var(--color-dark)", position: "relative" }}
+      >
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+          background: "linear-gradient(to right, transparent, var(--color-border) 30%, var(--color-border) 70%, transparent)",
+        }} />
 
-      <div className="container relative z-10 mx-auto" style={{ maxWidth: "var(--container-max)" }}>
-        <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
-          {/* ── Left Column: Copy ─────────────────────────── */}
-          <div className="flex flex-col gap-6">
-            {/* Section number */}
-            <div
-              data-section-number
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-sm)",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase" as const,
-                color: "var(--color-accent)",
-                marginBottom: "var(--space-4)",
-              }}
-            >
-              {CONTENT.sectionNumber}
-            </div>
+        <div className="container">
+          <div style={{ maxWidth: "700px" }}>
+            <span data-ct-tag className="section-label" style={{ marginBottom: "var(--space-8)", display: "flex" }}>
+              Work with us
+            </span>
 
-            {/* Headline */}
             <h2
-              data-contact-headline
+              data-ct-h1
               style={{
                 fontFamily: "var(--font-display)",
+                fontSize: "clamp(3rem, 8vw, 7rem)",
                 fontWeight: 700,
-                fontSize: "clamp(2rem, 5vw, 4rem)",
-                lineHeight: 1.05,
-                letterSpacing: "-0.03em",
-                color: "var(--color-light)",
+                letterSpacing: "-0.04em",
+                lineHeight: 0.95,
+                marginBottom: "var(--space-8)",
               }}
             >
-              {CONTENT.headline}
+              <span style={{ color: "var(--color-light)" }}>What&apos;s</span>
+              <br />
+              <span style={{ color: "var(--color-light)" }}>wasting</span>
+              <br />
+              <span style={{ color: "var(--color-accent)" }}>your time?</span>
             </h2>
 
-            {/* Accent bar */}
-            <div
-              data-contact-body
-              style={{
-                width: "48px",
-                height: "2px",
-                backgroundColor: "var(--color-accent)",
-                transformOrigin: "left center",
-              }}
-            />
-
-            {/* Body */}
             <p
-              data-contact-body
+              data-ct-sub
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "clamp(1rem, 1.3vw, 1.125rem)",
-                lineHeight: 1.7,
+                fontSize: "clamp(1rem, 1.4vw, 1.1rem)",
+                lineHeight: 1.75,
                 color: "var(--color-muted)",
-                maxWidth: "440px",
+                maxWidth: "460px",
+                marginBottom: "var(--space-10)",
               }}
             >
-              {CONTENT.body}
+              Tell us about the process that&apos;s costing you time, money, or errors.
+              No sales pitch. No templates. Just a real conversation about your operation.
             </p>
 
-            {/* CTA text */}
-            <div data-contact-body>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-sm)",
-                  fontWeight: 500,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "var(--color-accent)",
-                }}
-              >
-                {CONTENT.cta}
-              </span>
+            <button
+              data-ct-cta
+              onClick={openPanel}
+              className="group"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-xs)",
+                fontWeight: 500,
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                color: "var(--color-white)",
+                backgroundColor: "var(--color-accent)",
+                padding: "0.875rem 1.75rem",
+                borderRadius: "var(--radius-md)",
+                border: "none",
+                cursor: "pointer",
+                transition: "background-color 220ms ease, box-shadow 220ms ease",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = "var(--color-accent-hover)";
+                e.currentTarget.style.boxShadow = "var(--shadow-glow)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = "var(--color-accent)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              Bring us the problem
+              <span style={{ display: "inline-block", transition: "transform 220ms var(--ease-spring)" }}
+                className="group-hover:[transform:translate(2px,-2px)]"
+              >↗</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Overlay ────────────────────────────────────────── */}
+      <div
+        ref={overlayRef}
+        onClick={closePanel}
+        style={{
+          display: "none",
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.65)",
+          zIndex: "var(--z-overlay)" as unknown as number,
+          backdropFilter: "blur(4px)",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* ── Slide-in Panel ─────────────────────────────────── */}
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Start a project"
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: "min(560px, 100vw)",
+          zIndex: "var(--z-modal)" as unknown as number,
+          backgroundColor: "var(--color-deep-navy)",
+          borderLeft: "1px solid var(--color-border)",
+          display: "flex",
+          flexDirection: "column",
+          transform: "translateX(100%)",
+          willChange: "transform",
+        }}
+      >
+        {/* Panel header */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "var(--space-6) var(--space-8)",
+          borderBottom: "1px solid var(--color-border)",
+          flexShrink: 0,
+        }}>
+          <div>
+            <div style={{
+              fontFamily: "var(--font-mono)", fontSize: "10px",
+              letterSpacing: "0.1em", textTransform: "uppercase",
+              color: "var(--color-muted)", marginBottom: "var(--space-1)",
+            }}>
+              New inquiry
+            </div>
+            <div style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "var(--text-xl)",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              color: "var(--color-light)",
+            }}>
+              Tell us the problem
             </div>
           </div>
 
-          {/* ── Right Column: Multi-step Form ─────────────── */}
-          <div
-            data-contact-form-card
+          <button
+            onClick={closePanel}
+            aria-label="Close panel"
             style={{
-              backgroundColor: "var(--color-deep-navy)",
-              border: "1px solid var(--color-gray-700)",
+              width: 36, height: 36,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              border: "1px solid var(--color-border)",
               borderRadius: "var(--radius-lg)",
-              padding: "var(--space-8)",
-              opacity: 0,
+              backgroundColor: "transparent",
+              color: "var(--color-muted)",
+              cursor: "pointer",
+              fontSize: "1.25rem",
+              lineHeight: 1,
+              transition: "color 150ms ease, border-color 150ms ease",
             }}
+            onMouseEnter={e => { e.currentTarget.style.color = "var(--color-light)"; e.currentTarget.style.borderColor = "var(--color-border-md)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "var(--color-muted)"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
           >
-            {isSubmitted ? (
-              /* ── Success State ───────────────────────────── */
-              <div
-                className="flex flex-col items-center justify-center py-12 text-center"
-                data-contact-success
-              >
-                <div
-                  className="mb-6 flex h-16 w-16 items-center justify-center rounded-full"
-                  style={{
-                    backgroundColor: "rgba(46, 74, 249, 0.12)",
-                    border: "1px solid var(--color-accent)",
-                  }}
-                >
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="var(--color-accent)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "var(--text-2xl)",
-                    fontWeight: 700,
-                    color: "var(--color-light)",
-                    marginBottom: "var(--space-3)",
-                  }}
-                >
-                  MESSAGE SENT
-                </h3>
-                <p
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: "var(--text-sm)",
-                    lineHeight: 1.6,
-                    color: "var(--color-muted)",
-                    maxWidth: "360px",
-                  }}
-                >
-                  Thank you for reaching out. We&apos;ll review your inquiry and
-                  get back to you within 24 hours.
-                </p>
+            ×
+          </button>
+        </div>
+
+        {/* Form */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "var(--space-8)" }}>
+          {status === "success" ? (
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", height: "100%", textAlign: "center",
+              gap: "var(--space-4)",
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: "50%",
+                border: "1px solid rgba(5,150,105,0.5)",
+                backgroundColor: "rgba(5,150,105,0.1)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "1.25rem",
+              }}>
+                ✓
               </div>
-            ) : (
-              <>
-                {/* ── Step Indicators ───────────────────────── */}
-                <div
-                  className="mb-8 flex items-center gap-3"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-xs)",
-                    fontWeight: 500,
-                    letterSpacing: "0.06em",
-                  }}
-                >
-                  {stepIndicators.map((s, i) => (
-                    <div key={s} className="flex items-center gap-3">
-                      <div
-                        className="flex h-7 w-7 items-center justify-center rounded-full"
-                        style={{
-                          backgroundColor:
-                            s <= step
-                              ? "var(--color-accent)"
-                              : "rgba(255, 255, 255, 0.05)",
-                          color: s <= step ? "#fff" : "var(--color-muted)",
-                          border: `1px solid ${
-                            s <= step
-                              ? "var(--color-accent)"
-                              : "var(--color-gray-700)"
-                          }`,
-                          transition:
-                            "all 300ms cubic-bezier(0.25, 0.1, 0.25, 1)",
-                        }}
-                      >
-                        {s}
-                      </div>
-                      {i < stepIndicators.length - 1 && (
-                        <div
-                          style={{
-                            width: "24px",
-                            height: "1px",
-                            backgroundColor:
-                              s < step
-                                ? "var(--color-accent)"
-                                : "var(--color-gray-700)",
-                            transition:
-                              "background-color 300ms cubic-bezier(0.25, 0.1, 0.25, 1)",
-                          }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                  <span
+              <h3 style={{
+                fontFamily: "var(--font-display)", fontSize: "var(--text-2xl)",
+                fontWeight: 700, letterSpacing: "-0.025em", color: "var(--color-light)",
+              }}>
+                Received.
+              </h3>
+              <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", color: "var(--color-muted)", maxWidth: "320px", lineHeight: 1.7 }}>
+                We&apos;ll review your message and follow up within one business day.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+              {FIELDS.map(field => (
+                <div key={field.id} style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+                  <label
+                    htmlFor={field.id}
                     style={{
-                      marginLeft: "auto",
-                      color: "var(--color-muted)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "10px",
+                      fontWeight: 500,
+                      letterSpacing: "0.08em",
                       textTransform: "uppercase",
+                      color: "var(--color-muted)",
                     }}
                   >
-                    Step {step} of 3
-                  </span>
-                </div>
-
-                {/* ── Step Content ──────────────────────────── */}
-                <div ref={formStepRef} style={{ minHeight: "260px" }}>
-                  {step === 1 && (
-                    <div>
-                      <p
-                        style={{
-                          fontFamily: "var(--font-display)",
-                          fontSize: "var(--text-lg)",
-                          fontWeight: 600,
-                          color: "var(--color-light)",
-                          marginBottom: "var(--space-6)",
-                        }}
-                      >
-                        What best describes your problem?
-                      </p>
-                      <div className="flex flex-col gap-2">
-                        {CONTENT.categories.map((cat) => (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() => updateField("category", cat)}
-                            className="flex items-center gap-3 rounded-lg border p-3 text-left transition-all duration-200"
-                            style={{
-                              fontFamily: "var(--font-display)",
-                              fontSize: "var(--text-sm)",
-                              fontWeight: 500,
-                              backgroundColor:
-                                form.category === cat
-                                  ? "rgba(46, 74, 249, 0.08)"
-                                  : "transparent",
-                              borderColor:
-                                form.category === cat
-                                  ? "var(--color-accent)"
-                                  : "var(--color-gray-700)",
-                              color:
-                                form.category === cat
-                                  ? "var(--color-light)"
-                                  : "var(--color-muted)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <span
-                              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
-                              style={{
-                                borderColor:
-                                  form.category === cat
-                                    ? "var(--color-accent)"
-                                    : "var(--color-gray-600)",
-                                backgroundColor:
-                                  form.category === cat
-                                    ? "var(--color-accent)"
-                                    : "transparent",
-                              }}
-                            >
-                              {form.category === cat && (
-                                <span
-                                  className="block h-2 w-2 rounded-full"
-                                  style={{ backgroundColor: "#fff" }}
-                                />
-                              )}
-                            </span>
-                            {cat}
-                          </button>
-                        ))}
-                      </div>
-                      {errors.category && (
-                        <p style={errorStyle}>{errors.category}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {step === 2 && (
-                    <div>
-                      <p
-                        style={{
-                          fontFamily: "var(--font-display)",
-                          fontSize: "var(--text-lg)",
-                          fontWeight: 600,
-                          color: "var(--color-light)",
-                          marginBottom: "var(--space-2)",
-                        }}
-                      >
-                        Tell us about it
-                      </p>
-                      <p
-                        style={{
-                          fontFamily: "var(--font-body)",
-                          fontSize: "var(--text-sm)",
-                          color: "var(--color-muted)",
-                          marginBottom: "var(--space-6)",
-                        }}
-                      >
-                        {form.category && (
-                          <>
-                            Category:{" "}
-                            <span style={{ color: "var(--color-accent)" }}>
-                              {form.category}
-                            </span>
-                          </>
-                        )}
-                      </p>
-                      <textarea
-                        value={form.description}
-                        onChange={(e) =>
-                          updateField("description", e.target.value)
-                        }
-                        placeholder="Describe the problem, process, or bottleneck you're dealing with..."
-                        rows={6}
-                        style={{
-                          ...inputStyle(!!errors.description),
-                          resize: "vertical" as const,
-                          minHeight: "140px",
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor =
-                            "var(--color-accent)";
-                        }}
-                        onBlur={(e) => {
-                          if (!errors.description) {
-                            e.currentTarget.style.borderColor =
-                              "var(--color-gray-700)";
-                          }
-                        }}
-                      />
-                      {errors.description && (
-                        <p style={errorStyle}>{errors.description}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {step === 3 && (
-                    <div className="flex flex-col gap-4">
-                      <p
-                        style={{
-                          fontFamily: "var(--font-display)",
-                          fontSize: "var(--text-lg)",
-                          fontWeight: 600,
-                          color: "var(--color-light)",
-                          marginBottom: "var(--space-2)",
-                        }}
-                      >
-                        How can we reach you?
-                      </p>
-                      <p
-                        style={{
-                          fontFamily: "var(--font-body)",
-                          fontSize: "var(--text-sm)",
-                          color: "var(--color-muted)",
-                          marginBottom: "var(--space-4)",
-                        }}
-                      >
-                        We&apos;ll be in touch within 24 hours.
-                      </p>
-
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        {/* Name */}
-                        <div>
-                          <label style={labelStyle} htmlFor="contact-name">
-                            Name *
-                          </label>
-                          <input
-                            id="contact-name"
-                            type="text"
-                            value={form.name}
-                            onChange={(e) =>
-                              updateField("name", e.target.value)
-                            }
-                            placeholder="Your name"
-                            style={inputStyle(!!errors.name)}
-                            onFocus={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-accent)";
-                            }}
-                            onBlur={(e) => {
-                              if (!errors.name) {
-                                e.currentTarget.style.borderColor =
-                                  "var(--color-gray-700)";
-                              }
-                            }}
-                          />
-                          {errors.name && (
-                            <p style={errorStyle}>{errors.name}</p>
-                          )}
-                        </div>
-
-                        {/* Email */}
-                        <div>
-                          <label style={labelStyle} htmlFor="contact-email">
-                            Email *
-                          </label>
-                          <input
-                            id="contact-email"
-                            type="email"
-                            value={form.email}
-                            onChange={(e) =>
-                              updateField("email", e.target.value)
-                            }
-                            placeholder="you@company.com"
-                            style={inputStyle(!!errors.email)}
-                            onFocus={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-accent)";
-                            }}
-                            onBlur={(e) => {
-                              if (!errors.email) {
-                                e.currentTarget.style.borderColor =
-                                  "var(--color-gray-700)";
-                              }
-                            }}
-                          />
-                          {errors.email && (
-                            <p style={errorStyle}>{errors.email}</p>
-                          )}
-                        </div>
-
-                        {/* Phone */}
-                        <div>
-                          <label style={labelStyle} htmlFor="contact-phone">
-                            Phone
-                          </label>
-                          <input
-                            id="contact-phone"
-                            type="tel"
-                            value={form.phone}
-                            onChange={(e) =>
-                              updateField("phone", e.target.value)
-                            }
-                            placeholder="+1 (555) 000-0000"
-                            style={inputStyle(false)}
-                            onFocus={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-accent)";
-                            }}
-                            onBlur={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-gray-700)";
-                            }}
-                          />
-                        </div>
-
-                        {/* Company */}
-                        <div>
-                          <label style={labelStyle} htmlFor="contact-company">
-                            Company *
-                          </label>
-                          <input
-                            id="contact-company"
-                            type="text"
-                            value={form.company}
-                            onChange={(e) =>
-                              updateField("company", e.target.value)
-                            }
-                            placeholder="Your company"
-                            style={inputStyle(!!errors.company)}
-                            onFocus={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-accent)";
-                            }}
-                            onBlur={(e) => {
-                              if (!errors.company) {
-                                e.currentTarget.style.borderColor =
-                                  "var(--color-gray-700)";
-                              }
-                            }}
-                          />
-                          {errors.company && (
-                            <p style={errorStyle}>{errors.company}</p>
-                          )}
-                        </div>
-
-                        {/* Budget (optional) */}
-                        <div>
-                          <label style={labelStyle} htmlFor="contact-budget">
-                            Budget (optional)
-                          </label>
-                          <input
-                            id="contact-budget"
-                            type="text"
-                            value={form.budget}
-                            onChange={(e) =>
-                              updateField("budget", e.target.value)
-                            }
-                            placeholder="e.g. $10k - $50k"
-                            style={inputStyle(false)}
-                            onFocus={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-accent)";
-                            }}
-                            onBlur={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-gray-700)";
-                            }}
-                          />
-                        </div>
-
-                        {/* Timeline (optional) */}
-                        <div>
-                          <label style={labelStyle} htmlFor="contact-timeline">
-                            Timeline (optional)
-                          </label>
-                          <input
-                            id="contact-timeline"
-                            type="text"
-                            value={form.timeline}
-                            onChange={(e) =>
-                              updateField("timeline", e.target.value)
-                            }
-                            placeholder="e.g. 3 months"
-                            style={inputStyle(false)}
-                            onFocus={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-accent)";
-                            }}
-                            onBlur={(e) => {
-                              e.currentTarget.style.borderColor =
-                                "var(--color-gray-700)";
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    {field.label}
+                    {field.required && <span style={{ color: "var(--color-accent)", marginLeft: "2px" }}>*</span>}
+                  </label>
+                  {field.type === "textarea" ? (
+                    <textarea
+                      id={field.id}
+                      name={field.id}
+                      required={field.required}
+                      placeholder={field.placeholder}
+                      rows={5}
+                      autoComplete="off"
+                      suppressHydrationWarning
+                      value={form[field.id as keyof typeof form]}
+                      onChange={e => setForm(f => ({ ...f, [field.id]: e.target.value }))}
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: "var(--text-sm)",
+                        color: "var(--color-light)",
+                        backgroundColor: "rgba(255,255,255,0.04)",
+                        border: "1px solid var(--color-border)",
+                        borderRadius: "var(--radius-lg)",
+                        padding: "var(--space-4)",
+                        resize: "vertical",
+                        outline: "none",
+                        transition: "border-color 200ms ease",
+                        lineHeight: 1.6,
+                      }}
+                      onFocus={e => (e.target.style.borderColor = "var(--color-accent)")}
+                      onBlur={e => (e.target.style.borderColor = "var(--color-border)")}
+                    />
+                  ) : (
+                    <input
+                      id={field.id}
+                      name={field.id}
+                      type={field.type}
+                      required={field.required}
+                      placeholder={field.placeholder}
+                      autoComplete={field.id === "email" ? "email" : field.id === "name" ? "name" : field.id === "company" ? "organization" : "on"}
+                      suppressHydrationWarning
+                      value={form[field.id as keyof typeof form]}
+                      onChange={e => setForm(f => ({ ...f, [field.id]: e.target.value }))}
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: "var(--text-sm)",
+                        color: "var(--color-light)",
+                        backgroundColor: "rgba(255,255,255,0.04)",
+                        border: "1px solid var(--color-border)",
+                        borderRadius: "var(--radius-lg)",
+                        padding: "var(--space-3) var(--space-4)",
+                        outline: "none",
+                        transition: "border-color 200ms ease",
+                        width: "100%",
+                      }}
+                      onFocus={e => (e.target.style.borderColor = "var(--color-accent)")}
+                      onBlur={e => (e.target.style.borderColor = "var(--color-border)")}
+                    />
                   )}
                 </div>
+              ))}
 
-                {/* ── Navigation Buttons ────────────────────── */}
-                <div
-                  className="mt-8 flex items-center gap-3"
-                  style={{
-                    borderTop: "1px solid var(--color-gray-700)",
-                    paddingTop: "var(--space-6)",
-                  }}
-                >
-                  {step > 1 && (
-                    <button
-                      type="button"
-                      onClick={handlePrev}
-                      className="btn btn-ghost"
-                    >
-                      ← BACK
-                    </button>
-                  )}
+              {status === "error" && (
+                <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#F87171" }}>
+                  Something went wrong. Please try again.
+                </p>
+              )}
 
-                  <div style={{ marginLeft: "auto" }}>
-                    {step < 3 ? (
-                      <button
-                        type="button"
-                        onClick={handleNext}
-                        className="btn btn-primary"
-                      >
-                        NEXT →
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleSubmit}
-                        className="btn btn-primary"
-                      >
-                        SUBMIT INQUIRY →
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "var(--space-2)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-xs)",
+                  fontWeight: 500,
+                  letterSpacing: "0.07em",
+                  textTransform: "uppercase",
+                  color: "var(--color-white)",
+                  backgroundColor: status === "loading" ? "var(--color-gray-700)" : "var(--color-accent)",
+                  padding: "0.875rem var(--space-6)",
+                  borderRadius: "var(--radius-md)",
+                  border: "none",
+                  cursor: status === "loading" ? "not-allowed" : "pointer",
+                  transition: "background-color 200ms ease",
+                  marginTop: "var(--space-2)",
+                }}
+              >
+                {status === "loading" ? "Sending..." : "Send →"}
+              </button>
+            </form>
+          )}
         </div>
       </div>
-    </section>
+    </>
   );
 }

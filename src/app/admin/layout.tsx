@@ -1,331 +1,522 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import gsap from "gsap";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/admin", icon: "grid" },
-  { label: "Pages", href: "/admin/pages", icon: "file-text" },
-  { label: "Projects", href: "/admin/projects", icon: "briefcase" },
-  { label: "Solutions", href: "/admin/solutions", icon: "layers" },
-  { label: "Industries", href: "/admin/industries", icon: "building" },
-  { label: "Team", href: "/admin/team", icon: "users" },
-  { label: "Media", href: "/admin/media", icon: "image" },
-  { label: "Leads", href: "/admin/leads", icon: "inbox" },
-  { label: "Navigation", href: "/admin/navigation", icon: "menu" },
-  { label: "SEO", href: "/admin/seo", icon: "search" },
-  { label: "Settings", href: "/admin/settings", icon: "settings" },
-  { label: "Users", href: "/admin/users", icon: "user" },
-  { label: "Audit Log", href: "/admin/audit-log", icon: "clock" },
+/* ── Nav structure ──────────────────────────────────────────── */
+const NAV_GROUPS = [
+  {
+    label: "Content",
+    items: [
+      { label: "Dashboard",  href: "/admin",           icon: "⊡" },
+      { label: "Projects",   href: "/admin/projects",  icon: "◈" },
+      { label: "Leads",      href: "/admin/leads",     icon: "◎" },
+      { label: "Media",      href: "/admin/media",     icon: "⊞" },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { label: "Users",      href: "/admin/users",     icon: "◷" },
+      { label: "Audit Log",  href: "/admin/audit-log", icon: "≡" },
+      { label: "SEO",        href: "/admin/seo",       icon: "◌" },
+      { label: "Settings",   href: "/admin/settings",  icon: "⊕" },
+    ],
+  },
 ] as const;
 
-const ICONS: Record<string, ReactNode> = {
-  grid: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-    </svg>
-  ),
-  "file-text": (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" y1="13" x2="8" y2="13" />
-      <line x1="16" y1="17" x2="8" y2="17" />
-    </svg>
-  ),
-  briefcase: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-    </svg>
-  ),
-  layers: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 2 7 12 12 22 7 12 2" />
-      <polyline points="2 17 12 22 22 17" />
-      <polyline points="2 12 12 17 22 12" />
-    </svg>
-  ),
-  building: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-      <path d="M9 22v-4h6v4" />
-      <line x1="8" y1="6" x2="10" y2="6" />
-      <line x1="14" y1="6" x2="16" y2="6" />
-      <line x1="8" y1="10" x2="10" y2="10" />
-      <line x1="14" y1="10" x2="16" y2="10" />
-      <line x1="8" y1="14" x2="10" y2="14" />
-      <line x1="14" y1="14" x2="16" y2="14" />
-    </svg>
-  ),
-  users: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  ),
-  image: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <polyline points="21 15 16 10 5 21" />
-    </svg>
-  ),
-  inbox: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
-      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
-    </svg>
-  ),
-  menu: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
-  ),
-  search: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  ),
-  settings: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  ),
-  user: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  ),
-  clock: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  ),
-};
-
-const SIDEBAR_WIDTH = 240;
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+/* ── Sidebar ─────────────────────────────────────────────────── */
+function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = usePathname();
+  const sidebarRef = useRef<HTMLElement>(null);
 
-  function isActive(href: string): boolean {
-    if (href === "/admin") return pathname === "/admin";
-    return pathname.startsWith(href);
-  }
+  useEffect(() => {
+    if (!sidebarRef.current) return;
+    gsap.to(sidebarRef.current, {
+      width: collapsed ? 56 : 220,
+      duration: 0.3,
+      ease: "power2.inOut",
+    });
+  }, [collapsed]);
+
+  const isActive = (href: string) =>
+    href === "/admin" ? pathname === href : pathname.startsWith(href);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--color-dark)" }}>
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 lg:hidden"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+    <aside
+      ref={sidebarRef}
+      style={{
+        width: 220,
+        flexShrink: 0,
+        height: "100vh",
+        position: "sticky",
+        top: 0,
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--color-admin-panel)",
+        borderRight: "1px solid var(--color-admin-border)",
+        overflow: "hidden",
+        zIndex: 10,
+      }}
+    >
+      {/* Wordmark */}
+      <div style={{
+        height: 52,
+        display: "flex",
+        alignItems: "center",
+        paddingLeft: collapsed ? 16 : 20,
+        paddingRight: collapsed ? 16 : 20,
+        borderBottom: "1px solid var(--color-admin-border)",
+        flexShrink: 0,
+        gap: "var(--space-3)",
+      }}>
+        <span style={{
+          fontFamily: "var(--font-display)", fontWeight: 700,
+          fontSize: "0.9rem", letterSpacing: "-0.02em",
+          color: "var(--color-light)", whiteSpace: "nowrap",
+          opacity: collapsed ? 0 : 1,
+          transition: "opacity 200ms ease",
+        }}>
+          BYTE<span style={{ color: "var(--color-accent)" }}>CMS</span>
+        </span>
+        {collapsed && (
+          <span style={{
+            fontFamily: "var(--font-display)", fontWeight: 700,
+            fontSize: "0.9rem", letterSpacing: "-0.02em",
+            color: "var(--color-accent)", whiteSpace: "nowrap",
+            position: "absolute", left: 16,
+          }}>
+            B
+          </span>
+        )}
+      </div>
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        style={{
-          width: SIDEBAR_WIDTH,
-          backgroundColor: "var(--color-deep-navy)",
-          borderRight: "1px solid var(--color-gray-700)",
-        }}
-      >
-        {/* Logo */}
-        <div
-          className="flex items-center gap-2 px-5"
-          style={{ height: 56, borderBottom: "1px solid var(--color-gray-700)" }}
-        >
-          <Link href="/admin" className="flex items-center gap-2" onClick={() => setSidebarOpen(false)}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-lg)", fontWeight: 600, letterSpacing: "-0.02em" }}>
-              <span style={{ color: "var(--color-light)" }}>Byte</span>
-              <span style={{ color: "var(--color-light)", fontWeight: 700 }}>Build</span>
-              <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>IT</span>
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                fontWeight: 500,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "var(--color-muted)",
-                padding: "2px 6px",
-                border: "1px solid var(--color-gray-700)",
-                borderRadius: "var(--radius-sm)",
-              }}
-            >
-              CMS
-            </span>
-          </Link>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Admin navigation">
-          <ul className="flex flex-col gap-0.5">
-            {NAV_ITEMS.map((item) => {
+      {/* Nav */}
+      <nav style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "var(--space-3) var(--space-2)" }}>
+        {NAV_GROUPS.map(group => (
+          <div key={group.label} style={{ marginBottom: "var(--space-6)" }}>
+            {!collapsed && (
+              <div style={{
+                fontFamily: "var(--font-mono)", fontSize: "9px",
+                fontWeight: 500, letterSpacing: "0.1em", textTransform: "uppercase",
+                color: "var(--color-gray-700)", padding: "0 var(--space-2)",
+                marginBottom: "var(--space-1)",
+              }}>
+                {group.label}
+              </div>
+            )}
+            {group.items.map(item => {
               const active = isActive(item.href);
               return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className="flex items-center gap-3 rounded transition-colors duration-150"
-                    style={{
-                      padding: "8px 12px",
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={collapsed ? item.label : undefined}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-3)",
+                    padding: "var(--space-2) var(--space-3)",
+                    borderRadius: "var(--radius-lg)",
+                    textDecoration: "none",
+                    transition: "background-color 150ms ease",
+                    backgroundColor: active ? "rgba(46,74,249,0.12)" : "transparent",
+                    marginBottom: "2px",
+                    whiteSpace: "nowrap",
+                  }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.backgroundColor = "transparent"; }}
+                >
+                  <span style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "14px",
+                    color: active ? "var(--color-accent)" : "var(--color-gray-500)",
+                    flexShrink: 0,
+                    width: 18,
+                    textAlign: "center",
+                    transition: "color 150ms ease",
+                  }}>
+                    {item.icon}
+                  </span>
+                  {!collapsed && (
+                    <span style={{
                       fontFamily: "var(--font-body)",
                       fontSize: "var(--text-sm)",
                       fontWeight: active ? 500 : 400,
                       color: active ? "var(--color-light)" : "var(--color-muted)",
-                      backgroundColor: active ? "var(--color-accent-dim)" : "transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!active) e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!active) e.currentTarget.style.backgroundColor = "transparent";
-                    }}
-                  >
-                    <span style={{ color: active ? "var(--color-accent)" : "var(--color-gray-500)", flexShrink: 0, display: "flex" }}>
-                      {ICONS[item.icon]}
+                      transition: "color 150ms ease",
+                    }}>
+                      {item.label}
                     </span>
-                    {item.label}
-                  </Link>
-                </li>
+                  )}
+                </Link>
               );
             })}
-          </ul>
-        </nav>
+          </div>
+        ))}
+      </nav>
 
-        {/* Sidebar footer */}
-        <div
-          className="px-5 py-3"
-          style={{ borderTop: "1px solid var(--color-gray-700)" }}
+      {/* Bottom — collapse toggle */}
+      <div style={{
+        padding: "var(--space-3) var(--space-2)",
+        borderTop: "1px solid var(--color-admin-border)",
+        flexShrink: 0,
+      }}>
+        <button
+          onClick={onToggle}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start",
+            gap: "var(--space-3)",
+            width: "100%",
+            padding: "var(--space-2) var(--space-3)",
+            border: "none",
+            backgroundColor: "transparent",
+            cursor: "pointer",
+            borderRadius: "var(--radius-lg)",
+            transition: "background-color 150ms ease",
+            fontFamily: "var(--font-mono)", fontSize: "11px",
+            color: "var(--color-gray-600)",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)")}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
         >
-          <div className="flex items-center gap-3">
-            <div
-              className="flex items-center justify-center"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "var(--radius-full)",
-                backgroundColor: "var(--color-accent-dim)",
-                color: "var(--color-accent)",
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-xs)",
-                fontWeight: 600,
-              }}
-            >
+          <span>{collapsed ? "→" : "←"}</span>
+          {!collapsed && <span>Collapse</span>}
+        </button>
+
+        {/* User avatar */}
+        {!collapsed && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: "var(--space-3)",
+            padding: "var(--space-3)",
+            marginTop: "var(--space-2)",
+          }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: "50%",
+              backgroundColor: "var(--color-accent)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 600,
+              color: "var(--color-white)", flexShrink: 0,
+            }}>
               A
             </div>
-            <div className="min-w-0 flex-1">
-              <div style={{ fontSize: "var(--text-sm)", fontWeight: 500, color: "var(--color-light)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                Admin User
+            <div>
+              <div style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "var(--color-neutral)", fontWeight: 500 }}>
+                Admin
               </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--color-muted)", letterSpacing: "0.02em" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--color-gray-600)" }}>
                 admin@bytebuildit.com
               </div>
             </div>
           </div>
-        </div>
-      </aside>
+        )}
+      </div>
+    </aside>
+  );
+}
 
-      {/* Main content area */}
-      <div className="lg:ml-60">
-        {/* Top bar */}
-        <header
-          className="sticky top-0 z-30 flex items-center justify-between"
+/* ── Top bar ─────────────────────────────────────────────────── */
+function TopBar({ onCommandPalette }: { onCommandPalette: () => void }) {
+  const pathname = usePathname();
+
+  // Derive page title from path
+  const pageTitle = pathname === "/admin"
+    ? "Dashboard"
+    : pathname.split("/").filter(Boolean).pop()
+      ?.replace(/-/g, " ")
+      .replace(/\b\w/g, c => c.toUpperCase())
+    ?? "CMS";
+
+  return (
+    <header style={{
+      height: 52,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingLeft: "var(--space-6)",
+      paddingRight: "var(--space-6)",
+      borderBottom: "1px solid var(--color-admin-border)",
+      backgroundColor: "var(--color-admin-bg)",
+      position: "sticky",
+      top: 0,
+      zIndex: 5,
+      flexShrink: 0,
+    }}>
+      <h1 style={{
+        fontFamily: "var(--font-display)",
+        fontSize: "var(--text-lg)",
+        fontWeight: 600,
+        letterSpacing: "-0.02em",
+        color: "var(--color-light)",
+      }}>
+        {pageTitle}
+      </h1>
+
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+        {/* Command palette trigger */}
+        <button
+          onClick={onCommandPalette}
+          title="Command palette (⌘K)"
           style={{
-            height: 56,
-            padding: "0 24px",
-            backgroundColor: "rgba(7, 11, 18, 0.85)",
-            backdropFilter: "blur(8px)",
-            borderBottom: "1px solid var(--color-gray-700)",
+            display: "flex", alignItems: "center", gap: "var(--space-2)",
+            padding: "5px var(--space-3)",
+            backgroundColor: "rgba(255,255,255,0.04)",
+            border: "1px solid var(--color-admin-border)",
+            borderRadius: "var(--radius-lg)",
+            cursor: "pointer",
+            fontFamily: "var(--font-mono)", fontSize: "11px",
+            color: "var(--color-gray-500)",
+            transition: "all 150ms ease",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.07)";
+            e.currentTarget.style.color = "var(--color-muted)";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)";
+            e.currentTarget.style.color = "var(--color-gray-500)";
           }}
         >
-          {/* Mobile hamburger */}
-          <button
-            className="flex items-center justify-center lg:hidden"
-            style={{ width: 36, height: 36, color: "var(--color-muted)", background: "none", border: "none", cursor: "pointer" }}
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open sidebar"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
+          <span>⌘</span>
+          <span>Search...</span>
+          <kbd style={{
+            fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--color-gray-700)",
+            border: "1px solid var(--color-admin-border)", borderRadius: "var(--radius-xs)",
+            padding: "1px 4px",
+          }}>K</kbd>
+        </button>
 
-          {/* Page title area - breadcrumb-like */}
-          <div className="hidden lg:block" style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)", color: "var(--color-muted)", letterSpacing: "0.04em" }}>
-            {pathname === "/admin" ? "Dashboard" : pathname.split("/").filter(Boolean).map((s, i, arr) => (
-              <span key={i}>
-                {i > 0 && <span style={{ margin: "0 6px", color: "var(--color-gray-600)" }}>/</span>}
-                <span style={{ color: i === arr.length - 1 ? "var(--color-light)" : "var(--color-muted)", textTransform: "capitalize" }}>
-                  {s}
+        {/* View site */}
+        <Link
+          href="/"
+          target="_blank"
+          rel="noopener"
+          style={{
+            display: "flex", alignItems: "center", gap: "var(--space-1)",
+            fontFamily: "var(--font-mono)", fontSize: "10px",
+            letterSpacing: "0.06em", textTransform: "uppercase",
+            color: "var(--color-gray-600)", textDecoration: "none",
+            transition: "color 150ms ease",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--color-muted)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--color-gray-600)")}
+        >
+          View site ↗
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+/* ── Command Palette ─────────────────────────────────────────── */
+const PALETTE_COMMANDS = [
+  { label: "Go to Dashboard",    href: "/admin",            category: "Navigate" },
+  { label: "Go to Projects",     href: "/admin/projects",   category: "Navigate" },
+  { label: "Go to Leads",        href: "/admin/leads",      category: "Navigate" },
+  { label: "Go to Media",        href: "/admin/media",      category: "Navigate" },
+  { label: "Go to Users",        href: "/admin/users",      category: "Navigate" },
+  { label: "Go to Settings",     href: "/admin/settings",   category: "Navigate" },
+  { label: "New Project",        href: "/admin/projects/new", category: "Create" },
+  { label: "View public site",   href: "/",                 category: "External" },
+];
+
+function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [query, setQuery]     = useState("");
+  const [cursor, setCursor]   = useState(0);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const panelRef   = useRef<HTMLDivElement>(null);
+  const inputRef   = useRef<HTMLInputElement>(null);
+
+  const results = PALETTE_COMMANDS.filter(c =>
+    c.label.toLowerCase().includes(query.toLowerCase())
+  );
+
+  useEffect(() => {
+    if (!overlayRef.current || !panelRef.current) return;
+    if (open) {
+      gsap.set(overlayRef.current, { display: "flex" });
+      gsap.from(panelRef.current, { y: -16, opacity: 0, duration: 0.22, ease: "power3.out" });
+      requestAnimationFrame(() => inputRef.current?.focus());
+    } else {
+      gsap.to(panelRef.current, {
+        y: -10, opacity: 0, duration: 0.18, ease: "power2.in",
+        onComplete: () => gsap.set(overlayRef.current, { display: "none" }),
+      });
+    }
+  }, [open]);
+
+
+
+
+  const handleKey = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") setCursor(c => Math.min(c + 1, results.length - 1));
+    if (e.key === "ArrowUp")   setCursor(c => Math.max(c - 1, 0));
+    if (e.key === "Escape")    onClose();
+    if (e.key === "Enter" && results[cursor]) {
+      window.location.href = results[cursor].href;
+      onClose();
+    }
+  };
+
+  if (!open && typeof window !== "undefined") return null;
+
+  return (
+    <div
+      ref={overlayRef}
+      onClick={onClose}
+      style={{
+        display: "none",
+        position: "fixed", inset: 0,
+        backgroundColor: "rgba(0,0,0,0.7)",
+        backdropFilter: "blur(4px)",
+        zIndex: "var(--z-modal)" as unknown as number,
+        alignItems: "flex-start",
+        justifyContent: "center",
+        paddingTop: "15vh",
+      }}
+    >
+      <div
+        ref={panelRef}
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: "min(560px, 90vw)",
+          backgroundColor: "var(--color-admin-raised)",
+          border: "1px solid var(--color-admin-border)",
+          borderRadius: "var(--radius-xl)",
+          overflow: "hidden",
+          boxShadow: "var(--shadow-xl)",
+        }}
+        onKeyDown={handleKey}
+      >
+        {/* Search bar */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: "var(--space-3)",
+          padding: "var(--space-4) var(--space-5)",
+          borderBottom: "1px solid var(--color-admin-border)",
+        }}>
+          <span style={{ color: "var(--color-gray-600)", flexShrink: 0 }}>⌘</span>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search commands..."
+            value={query}
+            autoComplete="off"
+            suppressHydrationWarning
+            onChange={e => { setQuery(e.target.value); setCursor(0); }}
+            style={{
+              flex: 1, background: "none", border: "none", outline: "none",
+              fontFamily: "var(--font-body)", fontSize: "var(--text-sm)",
+              color: "var(--color-light)",
+            }}
+          />
+          <kbd style={{
+            fontFamily: "var(--font-mono)", fontSize: "9px",
+            color: "var(--color-gray-700)",
+            border: "1px solid var(--color-admin-border)",
+            borderRadius: "var(--radius-xs)", padding: "2px 6px",
+          }}>Esc</kbd>
+        </div>
+
+        {/* Results */}
+        <div style={{ maxHeight: "320px", overflowY: "auto", padding: "var(--space-2)" }}>
+          {results.length === 0 ? (
+            <div style={{
+              padding: "var(--space-6)", textAlign: "center",
+              fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-gray-600)",
+            }}>
+              No commands found
+            </div>
+          ) : (
+            results.map((cmd, i) => (
+              <Link
+                key={cmd.href + cmd.label}
+                href={cmd.href}
+                onClick={onClose}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "var(--space-2) var(--space-3)",
+                  borderRadius: "var(--radius-lg)",
+                  textDecoration: "none",
+                  backgroundColor: cursor === i ? "rgba(46,74,249,0.12)" : "transparent",
+                  transition: "background-color 100ms ease",
+                }}
+                onMouseEnter={() => setCursor(i)}
+              >
+                <span style={{
+                  fontFamily: "var(--font-body)", fontSize: "var(--text-sm)",
+                  color: cursor === i ? "var(--color-light)" : "var(--color-muted)",
+                  transition: "color 100ms ease",
+                }}>
+                  {cmd.label}
                 </span>
-              </span>
-            ))}
-          </div>
+                <span style={{
+                  fontFamily: "var(--font-mono)", fontSize: "9px",
+                  letterSpacing: "0.08em", textTransform: "uppercase",
+                  color: "var(--color-gray-700)",
+                  padding: "2px 6px",
+                  backgroundColor: "rgba(255,255,255,0.04)",
+                  borderRadius: "var(--radius-xs)",
+                }}>
+                  {cmd.category}
+                </span>
+              </Link>
+            ))
+          )}
+        </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-3">
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                fontWeight: 500,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                color: "var(--color-muted)",
-                padding: "4px 10px",
-                border: "1px solid var(--color-gray-700)",
-                borderRadius: "var(--radius-md)",
-                textDecoration: "none",
-                transition: "color 150ms, border-color 150ms",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-light)"; e.currentTarget.style.borderColor = "var(--color-gray-600)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-muted)"; e.currentTarget.style.borderColor = "var(--color-gray-700)"; }}
-            >
-              View site
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </a>
-          </div>
-        </header>
+        {/* Footer */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: "var(--space-4)",
+          padding: "var(--space-2) var(--space-4)",
+          borderTop: "1px solid var(--color-admin-border)",
+          fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--color-gray-700)",
+        }}>
+          <span>↑↓ navigate</span>
+          <span>↵ select</span>
+          <span>esc dismiss</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Page content */}
-        <main style={{ padding: "24px", minHeight: "calc(100vh - 56px)" }}>
+/* ── Admin Layout ────────────────────────────────────────────── */
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed]   = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // ⌘K global shortcut
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen(v => !v);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  return (
+    <div style={{
+      display: "flex",
+      minHeight: "100vh",
+      backgroundColor: "var(--color-admin-bg)",
+      fontFamily: "var(--font-body)",
+    }}>
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(v => !v)} />
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflowX: "hidden" }}>
+        <TopBar onCommandPalette={() => setPaletteOpen(true)} />
+        <main style={{ flex: 1, overflowY: "auto" }}>
           {children}
         </main>
       </div>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 }

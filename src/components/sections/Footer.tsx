@@ -1,284 +1,151 @@
 "use client";
 
-import { useRef } from "react";
 import Link from "next/link";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
 
-/* ── CMS-editable data ─────────────────────────────────────────── */
-
-interface FooterLink {
-  label: string;
-  href: string;
-}
-
-interface SocialLink {
-  label: string;
-  href: string;
-  icon: "linkedin" | "twitter" | "github";
-}
-
-interface FooterContent {
-  copyright: string;
-  tagline: string;
-  navLinks: FooterLink[];
-  socialLinks: SocialLink[];
-}
-
-const CONTENT: FooterContent = {
-  copyright: "© 2024 ByteBuildIT. All rights reserved.",
-  tagline: "Software systems for businesses that have outgrown manual work.",
-  navLinks: [
-    { label: "Work", href: "#work" },
-    { label: "Solutions", href: "#solutions" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+const FOOTER_LINKS = {
+  Work: [
+    { label: "All projects", href: "/work" },
+    { label: "Case studies", href: "/work" },
   ],
-  socialLinks: [
-    { label: "LinkedIn", href: "#", icon: "linkedin" },
-    { label: "Twitter/X", href: "#", icon: "twitter" },
-    { label: "GitHub", href: "#", icon: "github" },
+  Solutions: [
+    { label: "Business Systems", href: "/#what-we-build" },
+    { label: "Automation", href: "/#what-we-build" },
+    { label: "AI & Intelligence", href: "/#what-we-build" },
+    { label: "Digital Products", href: "/#what-we-build" },
+  ],
+  Company: [
+    { label: "Approach", href: "/#approach-detail" },
+    { label: "About", href: "/#about" },
+    { label: "Contact", href: "/#contact" },
   ],
 };
 
-/* ── Social icon SVGs ──────────────────────────────────────────── */
-
-function SocialIcon({ icon }: { icon: SocialLink["icon"] }) {
-  switch (icon) {
-    case "linkedin":
-      return (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-          <rect width="4" height="12" x="2" y="9" />
-          <circle cx="4" cy="4" r="2" />
-        </svg>
-      );
-    case "twitter":
-      return (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-        </svg>
-      );
-    case "github":
-      return (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4" />
-          <path d="M9 18c-4.51 2-5-2-7-2" />
-        </svg>
-      );
-  }
-}
-
-/* ── Component ──────────────────────────────────────────────────── */
-
 export default function Footer() {
-  const footerRef = useRef<HTMLElement>(null);
-
-  useGSAP(
-    () => {
-      const footer = footerRef.current;
-      if (!footer) return;
-
-      // --- Divider line grow ---
-      const divider = footer.querySelector("[data-footer-divider]");
-      if (divider) {
-        gsap.fromTo(
-          divider,
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            duration: 0.8,
-            ease: "power3.inOut",
-          }
-        );
-      }
-
-      // --- Content fade-in ---
-      const contentElements = footer.querySelectorAll("[data-footer-content]");
-      if (contentElements.length > 0) {
-        gsap.fromTo(
-          contentElements,
-          { opacity: 0, y: 16 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            ease: "power3.out",
-            stagger: 0.08,
-          }
-        );
-      }
-    },
-    { scope: footerRef }
-  );
+  const year = new Date().getFullYear();
 
   return (
     <footer
-      ref={footerRef}
-      className="relative"
-      style={{ backgroundColor: "var(--color-dark)" }}
-      role="contentinfo"
+      style={{
+        backgroundColor: "var(--color-dark)",
+        borderTop: "1px solid var(--color-border)",
+        paddingTop: "var(--space-16)",
+        paddingBottom: "var(--space-10)",
+      }}
     >
-      {/* Top divider */}
-      <div
-        data-footer-divider
-        className="mx-auto"
-        style={{
-          maxWidth: "var(--container-max)",
-          height: "1px",
-          backgroundColor: "var(--color-gray-700)",
-          transformOrigin: "left center",
+      <div className="container">
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "var(--space-12)",
+          marginBottom: "var(--space-16)",
         }}
-      />
-
-      <div
-        className="mx-auto"
-        style={{
-          maxWidth: "var(--container-max)",
-          padding: "var(--space-12) var(--space-6) var(--space-8)",
-        }}
-      >
-        {/* ── Main Footer Row ──────────────────────────── */}
-        <div
-          data-footer-content
-          className="mb-10 flex flex-col gap-8 md:flex-row md:items-start md:justify-between"
+          className="md:!grid-cols-[1.5fr_1fr_1fr_1fr]"
         >
-          {/* Left: Wordmark + Copyright */}
-          <div className="flex flex-col gap-3">
+          {/* Brand */}
+          <div>
             <Link
               href="/"
-              className="flex-shrink-0 text-xl tracking-tight"
-              aria-label="ByteBuildIT home"
-            >
-              <span className="font-display" style={{ color: "var(--color-light)" }}>
-                Byte
-              </span>
-              <span className="font-display font-bold" style={{ color: "var(--color-light)" }}>
-                Build
-              </span>
-              <span className="font-display font-bold" style={{ color: "var(--color-accent)" }}>
-                IT
-              </span>
-            </Link>
-            <p
               style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-xs)",
-                color: "var(--color-muted)",
-                letterSpacing: "0.02em",
+                display: "inline-block",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: "1.05rem",
+                letterSpacing: "-0.02em",
+                textDecoration: "none",
+                marginBottom: "var(--space-4)",
               }}
             >
-              {CONTENT.copyright}
+              <span style={{ color: "var(--color-light)" }}>BYTE</span>
+              <span style={{ color: "var(--color-light)" }}>BUILD</span>
+              <span style={{ color: "var(--color-accent)" }}>IT</span>
+            </Link>
+            <p style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "var(--text-sm)",
+              lineHeight: 1.7,
+              color: "var(--color-muted)",
+              maxWidth: "280px",
+            }}>
+              We turn inefficient business processes into software systems that actually work.
             </p>
           </div>
 
-          {/* Center: Nav Links */}
-          <div data-footer-content className="flex flex-wrap gap-x-6 gap-y-2">
-            {CONTENT.navLinks.map((link) => (
+          {/* Link groups */}
+          {Object.entries(FOOTER_LINKS).map(([group, links]) => (
+            <div key={group}>
+              <div style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "10px",
+                fontWeight: 500,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--color-gray-600)",
+                marginBottom: "var(--space-4)",
+              }}>
+                {group}
+              </div>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                {links.map(link => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: "var(--text-sm)",
+                        color: "var(--color-muted)",
+                        textDecoration: "none",
+                        transition: "color 200ms ease",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "var(--color-light)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "var(--color-muted)")}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom bar */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "var(--space-4)",
+          paddingTop: "var(--space-6)",
+          borderTop: "1px solid var(--color-border)",
+        }}>
+          <p style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "10px",
+            letterSpacing: "0.06em",
+            color: "var(--color-gray-700)",
+          }}>
+            © {year} ByteBuildIT. All rights reserved.
+          </p>
+          <div style={{ display: "flex", gap: "var(--space-6)" }}>
+            {["Privacy", "Terms"].map(item => (
               <Link
-                key={link.label}
-                href={link.href}
-                className="transition-colors duration-200"
+                key={item}
+                href="#"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-xs)",
-                  fontWeight: 500,
+                  fontSize: "10px",
                   letterSpacing: "0.06em",
-                  textTransform: "uppercase" as const,
-                  color: "var(--color-muted)",
+                  color: "var(--color-gray-700)",
                   textDecoration: "none",
+                  transition: "color 200ms ease",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "var(--color-light)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "var(--color-muted)";
-                }}
+                onMouseEnter={e => (e.currentTarget.style.color = "var(--color-muted)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "var(--color-gray-700)")}
               >
-                {link.label}
+                {item}
               </Link>
             ))}
           </div>
-
-          {/* Right: Social Links */}
-          <div data-footer-content className="flex items-center gap-4">
-            {CONTENT.socialLinks.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={social.label}
-                className="flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200"
-                style={{
-                  color: "var(--color-muted)",
-                  backgroundColor: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid var(--color-gray-700)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "var(--color-light)";
-                  e.currentTarget.style.borderColor = "var(--color-gray-600)";
-                  e.currentTarget.style.backgroundColor =
-                    "rgba(255, 255, 255, 0.08)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "var(--color-muted)";
-                  e.currentTarget.style.borderColor = "var(--color-gray-700)";
-                  e.currentTarget.style.backgroundColor =
-                    "rgba(255, 255, 255, 0.04)";
-                }}
-              >
-                <SocialIcon icon={social.icon} />
-              </a>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Bottom Bar ───────────────────────────────── */}
-        <div
-          data-footer-content
-          style={{
-            borderTop: "1px solid var(--color-gray-700)",
-            paddingTop: "var(--space-6)",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "11px",
-              letterSpacing: "0.04em",
-              color: "var(--color-gray-500)",
-            }}
-          >
-            {CONTENT.tagline}
-          </p>
         </div>
       </div>
     </footer>

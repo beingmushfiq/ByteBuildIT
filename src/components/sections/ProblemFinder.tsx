@@ -1,464 +1,332 @@
-'use client'
+"use client";
 
-import { useState, useRef, useCallback } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
+import { useRef, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 
-/* ── Types ── */
+gsap.registerPlugin(ScrollTrigger);
 
-interface SolutionStep {
-  label: string
-  icon: string
-}
-
-interface ProblemOption {
-  id: string
-  label: string
-  icon: string
-  solutionFlow: SolutionStep[]
-}
-
-/* ── Data ── */
-
-const PROBLEMS: ProblemOption[] = [
+const PROBLEMS = [
   {
-    id: 'manual-work',
-    label: 'Too much manual work',
-    icon: '⏳',
-    solutionFlow: [
-      { label: 'MANUAL WORK', icon: '⏳' },
-      { label: 'TASK ANALYSIS', icon: '🔍' },
-      { label: 'WORKFLOW DESIGN', icon: '⚡' },
-      { label: 'AUTOMATION', icon: '🤖' },
-      { label: 'RESULT', icon: '✅' },
-    ],
+    id: "manual",
+    label: "Manual work",
+    headline: "Still doing it by hand?",
+    body: "When your team spends hours on repetitive data entry, reconciliation, and copy-paste operations, you're paying for friction. We automate the bottleneck.",
+    visual: { from: "8 steps, 4 people, 3 hours", to: "1 automated workflow" },
+    accent: "#2E4AF9",
   },
   {
-    id: 'spreadsheets',
-    label: 'Too many spreadsheets',
-    icon: '📊',
-    solutionFlow: [
-      { label: 'SPREADSHEETS', icon: '📊' },
-      { label: 'DATA MAPPING', icon: '🗺️' },
-      { label: 'CENTRALIZED SYSTEM', icon: '🗄️' },
-      { label: 'REAL-TIME ACCESS', icon: '🔄' },
-      { label: 'RESULT', icon: '✅' },
-    ],
+    id: "disconnected",
+    label: "Disconnected systems",
+    headline: "Your tools don't talk.",
+    body: "Sales is in one system. Operations in another. Finance in a spreadsheet. The glue is humans — and humans make errors. We connect the systems.",
+    visual: { from: "CRM → export → paste → ERP", to: "Live sync, always consistent" },
+    accent: "#5B21B6",
   },
   {
-    id: 'disconnected',
-    label: 'Disconnected systems',
-    icon: '🔗',
-    solutionFlow: [
-      { label: 'SILOS', icon: '🧱' },
-      { label: 'INTEGRATION AUDIT', icon: '🔍' },
-      { label: 'API LAYER', icon: '🔌' },
-      { label: 'UNIFIED PLATFORM', icon: '🌐' },
-      { label: 'RESULT', icon: '✅' },
-    ],
+    id: "spreadsheets",
+    label: "Too many spreadsheets",
+    headline: "Spreadsheets at scale break.",
+    body: "Version control. Merge conflicts. No audit trail. Concurrency issues. The spreadsheet was never designed to be your operational database.",
+    visual: { from: "v12_final_FINAL_use_this.xlsx", to: "Centralized system of record" },
+    accent: "#0F766E",
   },
   {
-    id: 'order-management',
-    label: 'Difficult order management',
-    icon: '📦',
-    solutionFlow: [
-      { label: 'ORDER CHAOS', icon: '📦' },
-      { label: 'PROCESS MAPPING', icon: '🗺️' },
-      { label: 'ORDER ENGINE', icon: '⚙️' },
-      { label: 'TRACKING', icon: '📡' },
-      { label: 'RESULT', icon: '✅' },
-    ],
+    id: "orders",
+    label: "Order complexity",
+    headline: "Orders shouldn't be this hard.",
+    body: "Multi-channel orders, variants, custom configurations, partial fulfillments, returns — when your process can't keep up, customers feel it.",
+    visual: { from: "WhatsApp → Spreadsheet → Manual pack", to: "Unified order management" },
+    accent: "#B45309",
   },
   {
-    id: 'poor-visibility',
-    label: 'Poor visibility',
-    icon: '👁️',
-    solutionFlow: [
-      { label: 'DATA DARKNESS', icon: '🌑' },
-      { label: 'REPORTING DESIGN', icon: '📋' },
-      { label: 'DASHBOARDS', icon: '📈' },
-      { label: 'INSIGHTS', icon: '💡' },
-      { label: 'RESULT', icon: '✅' },
-    ],
+    id: "visibility",
+    label: "Poor visibility",
+    headline: "You can't manage what you can't see.",
+    body: "Without real-time operational data, decisions are made on gut feel and yesterday's numbers. We build dashboards that tell the truth.",
+    visual: { from: "Monthly reports, always late", to: "Live operational intelligence" },
+    accent: "#065F46",
   },
   {
-    id: 'bad-software',
-    label: "Existing software doesn't fit",
-    icon: '🔧',
-    solutionFlow: [
-      { label: 'RIGID SOFTWARE', icon: '🔧' },
-      { label: 'REQUIREMENTS GAP', icon: '📝' },
-      { label: 'CUSTOM BUILD', icon: '🏗️' },
-      { label: 'PERFECT FIT', icon: '🎯' },
-      { label: 'RESULT', icon: '✅' },
-    ],
+    id: "legacy",
+    label: "Legacy software",
+    headline: "Built for a different era.",
+    body: "Old systems that nobody wants to touch. Integrations held together with duct tape. Migration feels impossible — until it isn't.",
+    visual: { from: "Unmaintainable, unextendable", to: "Modern, maintainable architecture" },
+    accent: "#831843",
   },
   {
-    id: 'ai-automation',
-    label: 'Need AI automation',
-    icon: '🧠',
-    solutionFlow: [
-      { label: 'REPETITIVE TASKS', icon: '🔁' },
-      { label: 'AI ASSESSMENT', icon: '🧠' },
-      { label: 'MODEL DESIGN', icon: '📐' },
-      { label: 'INTELLIGENT SYSTEM', icon: '🤖' },
-      { label: 'RESULT', icon: '✅' },
-    ],
+    id: "ai",
+    label: "AI opportunity",
+    headline: "Intelligence where it matters.",
+    body: "Not AI for the sake of AI. We identify where machine intelligence creates real leverage — document processing, decision support, prediction.",
+    visual: { from: "Manual review, inconsistent", to: "Intelligent automation + human oversight" },
+    accent: "#1D4ED8",
   },
   {
-    id: 'new-platform',
-    label: 'Need a new business platform',
-    icon: '🚀',
-    solutionFlow: [
-      { label: 'OUTGROWN TOOLS', icon: '📉' },
-      { label: 'ARCHITECTURE DESIGN', icon: '📐' },
-      { label: 'PLATFORM BUILD', icon: '🏗️' },
-      { label: 'SCALE', icon: '📈' },
-      { label: 'RESULT', icon: '✅' },
-    ],
+    id: "other",
+    label: "Something else",
+    headline: "Tell us what's broken.",
+    body: "Every operation has its own specific friction points. We start with discovery — understanding your process before recommending any technology.",
+    visual: { from: "Your unique problem", to: "A system designed around it" },
+    accent: "#374151",
   },
-  {
-    id: 'something-else',
-    label: 'Something else',
-    icon: '💬',
-    solutionFlow: [
-      { label: 'UNIQUE CHALLENGE', icon: '🧩' },
-      { label: 'DISCOVERY', icon: '🔍' },
-      { label: 'STRATEGY', icon: '🎯' },
-      { label: 'TAILORED SOLUTION', icon: '🛠️' },
-      { label: 'RESULT', icon: '✅' },
-    ],
-  },
-]
-
-/* ── Component ── */
+] as const;
 
 export default function ProblemFinder() {
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const flowRef = useRef<HTMLDivElement>(null)
-  const flowTimeline = useRef<gsap.core.Timeline | null>(null)
+  const sectionRef   = useRef<HTMLElement>(null);
+  const vizRef       = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+  const current = PROBLEMS[active];
 
-  const selectedProblem = PROBLEMS.find((p) => p.id === selectedId) ?? null
+  useGSAP(() => {
+    ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: "top 70%",
+      onEnter: () => {
+        gsap.from("[data-pf-tag]",      { opacity: 0, y: 16, duration: 0.6, ease: "power3.out" });
+        gsap.from("[data-pf-headline]", { opacity: 0, y: 32, duration: 0.7, delay: 0.1, ease: "power3.out" });
+        gsap.from("[data-pf-chip]",     { opacity: 0, y: 16, duration: 0.5, stagger: 0.055, delay: 0.25, ease: "power3.out" });
+        gsap.from("[data-pf-panel]",    { opacity: 0, x: 24, duration: 0.7, delay: 0.4, ease: "power3.out" });
+      },
+    });
+  }, { scope: sectionRef });
 
-  const handleSelect = useCallback(
-    (id: string) => {
-      if (selectedId === id) {
-        setSelectedId(null)
-        return
-      }
-      setSelectedId(id)
-    },
-    [selectedId],
-  )
-
-  useGSAP(
-    () => {
-      if (!flowRef.current || !selectedProblem) return
-
-      // Kill any running timeline
-      flowTimeline.current?.kill()
-
-      const steps = flowRef.current.querySelectorAll<HTMLElement>('[data-flow-step]')
-      const connectorEls = flowRef.current.querySelectorAll<HTMLElement>('[data-flow-connector]')
-      const cta = flowRef.current.querySelector<HTMLElement>('[data-flow-cta]')
-
-      // Set initial states
-      gsap.set(steps, { opacity: 0, y: 20, scale: 0.9 })
-      gsap.set(connectorEls, { opacity: 0, scaleX: 0 })
-      if (cta) gsap.set(cta, { opacity: 0, y: 12 })
-
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-
-      steps.forEach((step, i) => {
-        tl.to(step, { opacity: 1, y: 0, scale: 1, duration: 0.4 }, i * 0.12)
-        if (connectorEls[i]) {
-          tl.to(
-            connectorEls[i],
-            { opacity: 1, scaleX: 1, duration: 0.3 },
-            i * 0.12 + 0.15,
-          )
-        }
-      })
-
-      if (cta) {
-        tl.to(cta, { opacity: 1, y: 0, duration: 0.4 }, '-=0.1')
-      }
-
-      flowTimeline.current = tl
-    },
-    { scope: flowRef, dependencies: [selectedProblem] },
-  )
+  const handleSelect = (i: number) => {
+    if (!vizRef.current) { setActive(i); return; }
+    gsap.to(vizRef.current, {
+      opacity: 0, y: 8, duration: 0.18, ease: "power2.in",
+      onComplete: () => {
+        setActive(i);
+        gsap.fromTo(vizRef.current,
+          { opacity: 0, y: -8 },
+          { opacity: 1, y: 0, duration: 0.28, ease: "power3.out" }
+        );
+      },
+    });
+  };
 
   return (
     <section
-      id="problem-finder"
-      className="section relative overflow-hidden"
-      style={{ backgroundColor: 'var(--color-primary)' }}
+      ref={sectionRef}
+      id="solutions"
+      className="section"
+      style={{ backgroundColor: "var(--color-primary)", position: "relative" }}
     >
-      {/* Subtle grid pattern */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            'linear-gradient(var(--color-light) 1px, transparent 1px), linear-gradient(90deg, var(--color-light) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }}
-      />
+      {/* top rule */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+        background: "linear-gradient(to right, transparent, var(--color-border) 30%, var(--color-border) 70%, transparent)",
+      }} />
 
-      <div className="container relative z-10 mx-auto max-w-[var(--container-max)] px-6 md:px-8 xl:px-12">
-        {/* Section Header */}
-        <div className="mb-12 md:mb-16">
-          <span
-            className="label mb-4 inline-block"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 'var(--text-xs)',
-              fontWeight: 500,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: 'var(--color-muted)',
-            }}
-          >
-            03
+      <div className="container">
+        {/* Header */}
+        <div style={{ marginBottom: "var(--space-16)" }}>
+          <span data-pf-tag className="section-label" style={{ marginBottom: "var(--space-6)", display: "flex" }}>
+            Problem finder
           </span>
           <h2
-            className="mt-4 max-w-3xl text-3xl font-bold leading-tight tracking-tight md:text-4xl lg:text-5xl"
+            data-pf-headline
             style={{
-              fontFamily: 'var(--font-display)',
-              color: 'var(--color-light)',
-              letterSpacing: '-0.03em',
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(2rem, 4.5vw, 3.5rem)",
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: "-0.03em",
+              color: "var(--color-light)",
+              maxWidth: "600px",
             }}
           >
-            WHAT IS SLOWING{' '}
-            <span style={{ color: 'var(--color-accent)' }}>YOUR BUSINESS</span>{' '}
-            DOWN?
+            What&apos;s breaking your flow?
           </h2>
         </div>
 
-        {/* Problem Cards Grid */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PROBLEMS.map((problem) => {
-            const isSelected = selectedId === problem.id
-            return (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "var(--space-8)",
+          alignItems: "start",
+        }}
+          className="lg:!grid-cols-[1fr_1.1fr]"
+        >
+          {/* ── Problem chips ─────────────────────────────── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+            {PROBLEMS.map((p, i) => (
               <button
-                key={problem.id}
-                type="button"
-                onClick={() => handleSelect(problem.id)}
-                className="group relative flex items-center gap-3 rounded-lg border p-4 text-left transition-all duration-300"
+                key={p.id}
+                data-pf-chip
+                onClick={() => handleSelect(i)}
                 style={{
-                  fontFamily: 'var(--font-display)',
-                  backgroundColor: isSelected
-                    ? 'rgba(46, 74, 249, 0.08)'
-                    : 'var(--color-deep-navy)',
-                  borderColor: isSelected
-                    ? 'var(--color-accent)'
-                    : 'var(--color-gray-700)',
-                  boxShadow: isSelected ? 'var(--shadow-glow)' : 'none',
-                  cursor: 'pointer',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  padding: "var(--space-4) var(--space-5)",
+                  border: active === i
+                    ? `1px solid ${current.accent}40`
+                    : "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-lg)",
+                  backgroundColor: active === i
+                    ? `${current.accent}10`
+                    : "transparent",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "all 250ms ease",
                 }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.borderColor = 'var(--color-gray-600)'
+                onMouseEnter={e => {
+                  if (active !== i) {
+                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.03)";
+                    e.currentTarget.style.borderColor = "var(--color-border-md)";
                   }
                 }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.borderColor = 'var(--color-gray-700)'
+                onMouseLeave={e => {
+                  if (active !== i) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.borderColor = "var(--color-border)";
                   }
                 }}
               >
-                {/* Selection indicator */}
-                <span
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm"
-                  style={{
-                    backgroundColor: isSelected
-                      ? 'var(--color-accent)'
-                      : 'rgba(255, 255, 255, 0.05)',
-                    color: isSelected ? '#fff' : 'var(--color-muted)',
-                    transition: 'all 300ms cubic-bezier(0.25, 0.1, 0.25, 1)',
-                  }}
-                >
-                  {problem.icon}
+                <span style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-sm)",
+                  fontWeight: active === i ? 500 : 400,
+                  color: active === i ? "var(--color-light)" : "var(--color-muted)",
+                  transition: "color 200ms ease",
+                }}>
+                  {p.label}
                 </span>
-                <span
-                  className="text-sm font-medium"
-                  style={{
-                    color: isSelected ? 'var(--color-light)' : 'var(--color-muted)',
-                    transition: 'color 300ms cubic-bezier(0.25, 0.1, 0.25, 1)',
-                  }}
-                >
-                  {problem.label}
-                </span>
-
-                {/* Accent bar on left when selected */}
-                {isSelected && (
-                  <span
-                    className="absolute left-0 top-1/2 h-8 w-0.5 -translate-y-1/2 rounded-full"
-                    style={{ backgroundColor: 'var(--color-accent)' }}
-                  />
+                {active === i && (
+                  <span style={{
+                    width: 6, height: 6, borderRadius: "50%",
+                    backgroundColor: current.accent,
+                    flexShrink: 0,
+                  }} />
                 )}
               </button>
-            )
-          })}
-        </div>
+            ))}
+          </div>
 
-        {/* Solution Flow Area */}
-        <div
-          ref={flowRef}
-          className="mt-10 min-h-[200px] overflow-hidden rounded-xl border p-6 md:mt-14 md:p-8"
-          style={{
-            backgroundColor: 'var(--color-deep-navy)',
-            borderColor: 'var(--color-gray-700)',
-          }}
-        >
-          {selectedProblem ? (
-            <>
-              {/* Flow Label */}
-              <p
-                className="mb-6 text-xs font-medium uppercase tracking-widest"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--color-muted)',
-                }}
-              >
-                Solution path for: {selectedProblem.label}
+          {/* ── Visualization panel ───────────────────────── */}
+          <div
+            data-pf-panel
+            ref={vizRef}
+            style={{
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-xl)",
+              backgroundColor: "rgba(11,18,32,0.6)",
+              overflow: "hidden",
+              minHeight: "340px",
+            }}
+          >
+            {/* Panel header */}
+            <div style={{
+              borderBottom: "1px solid var(--color-border)",
+              padding: "var(--space-5) var(--space-6)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: "50%",
+                  backgroundColor: current.accent,
+                  boxShadow: `0 0 8px ${current.accent}`,
+                }} />
+                <span style={{
+                  fontFamily: "var(--font-mono)", fontSize: "10px",
+                  letterSpacing: "0.1em", textTransform: "uppercase",
+                  color: "var(--color-muted)",
+                }}>
+                  {current.label}
+                </span>
+              </div>
+              <h3 style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.025em",
+                color: "var(--color-light)",
+                lineHeight: 1.2,
+              }}>
+                {current.headline}
+              </h3>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "var(--space-6)" }}>
+              <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)",
+                lineHeight: 1.75,
+                color: "var(--color-muted)",
+                marginBottom: "var(--space-8)",
+              }}>
+                {current.body}
               </p>
 
-              {/* Flow Steps */}
-              <div className="flex flex-wrap items-center justify-center gap-y-4">
-                {selectedProblem.solutionFlow.map((step, i) => {
-                  const isLast = i === selectedProblem.solutionFlow.length - 1
-                  return (
-                    <div key={step.label} className="flex items-center">
-                      {/* Step Node */}
-                      <div
-                        data-flow-step
-                        className="flex flex-col items-center gap-2 rounded-lg border px-4 py-3 md:px-6"
-                        style={{
-                          backgroundColor: isLast
-                            ? 'rgba(46, 74, 249, 0.12)'
-                            : 'rgba(255, 255, 255, 0.03)',
-                          borderColor: isLast
-                            ? 'var(--color-accent)'
-                            : 'var(--color-gray-700)',
-                          minWidth: '100px',
-                        }}
-                      >
-                        <span className="text-xl md:text-2xl">{step.icon}</span>
-                        <span
-                          className="whitespace-nowrap text-[10px] font-medium uppercase tracking-wider md:text-xs"
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            color: isLast
-                              ? 'var(--color-accent)'
-                              : 'var(--color-muted)',
-                          }}
-                        >
-                          {step.label}
-                        </span>
-                      </div>
+              {/* Before → After */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto 1fr",
+                gap: "var(--space-4)",
+                alignItems: "center",
+              }}>
+                <div style={{
+                  padding: "var(--space-4)",
+                  backgroundColor: "rgba(255,255,255,0.03)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-lg)",
+                }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "9px", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--color-gray-600)", marginBottom: "var(--space-2)" }}>
+                    Before
+                  </div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-muted)", lineHeight: 1.5 }}>
+                    {current.visual.from}
+                  </div>
+                </div>
 
-                      {/* Connector Arrow */}
-                      {!isLast && (
-                        <div
-                          data-flow-connector
-                          className="mx-2 flex items-center"
-                        >
-                          <div
-                            className="h-px w-6 md:w-10"
-                            style={{ backgroundColor: 'var(--color-gray-600)' }}
-                          />
-                          <svg
-                            width="12"
-                            height="8"
-                            viewBox="0 0 12 8"
-                            fill="none"
-                            className="shrink-0"
-                          >
-                            <path
-                              d="M1 4H10M10 4L7 1M10 4L7 7"
-                              stroke="var(--color-gray-600)"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+                <div style={{ color: "var(--color-gray-700)", fontSize: "1.25rem" }}>→</div>
+
+                <div style={{
+                  padding: "var(--space-4)",
+                  backgroundColor: `${current.accent}08`,
+                  border: `1px solid ${current.accent}25`,
+                  borderRadius: "var(--radius-lg)",
+                }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "9px", letterSpacing: "0.08em", textTransform: "uppercase", color: current.accent, opacity: 0.8, marginBottom: "var(--space-2)" }}>
+                    After
+                  </div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-neutral)", lineHeight: 1.5 }}>
+                    {current.visual.to}
+                  </div>
+                </div>
               </div>
 
               {/* CTA */}
-              <div data-flow-cta className="mt-8 text-center">
-                <button
-                  type="button"
-                  className="btn btn-primary"
+              <div style={{ marginTop: "var(--space-8)" }}>
+                <a
+                  href="#contact"
                   style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'var(--text-sm)',
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
                     fontWeight: 500,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    padding: 'var(--space-3) var(--space-6)',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--color-accent)',
-                    color: '#fff',
-                    border: '1px solid var(--color-accent)',
-                    cursor: 'pointer',
-                    transition:
-                      'all 300ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: current.accent,
+                    textDecoration: "none",
+                    transition: "opacity 200ms ease",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--color-accent-hover)'
-                    e.currentTarget.style.boxShadow = 'var(--shadow-glow)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--color-accent)'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
                 >
-                  TURN THIS INTO A SYSTEM &rarr;
-                </button>
+                  Bring us this problem ↗
+                </a>
               </div>
-            </>
-          ) : (
-            /* Empty state */
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div
-                className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-                style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-muted)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.35-4.35" />
-                </svg>
-              </div>
-              <p
-                className="text-sm"
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  color: 'var(--color-muted)',
-                }}
-              >
-                Select a problem above to see your solution path
-              </p>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </section>
-  )
+  );
 }
