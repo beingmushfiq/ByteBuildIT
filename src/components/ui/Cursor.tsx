@@ -62,7 +62,7 @@ export default function Cursor() {
     };
 
     const onLeave = () => {
-      gsap.to(ring, { scale: 1, borderColor: "rgba(255,255,255,0.25)", opacity: 1, duration: 0.4, ease: "power3.out" });
+      gsap.to(ring, { scale: 1, borderColor: "var(--color-cursor-ring)", opacity: 1, duration: 0.4, ease: "power3.out" });
       gsap.to(dot, { scale: 1, duration: 0.3 });
       gsap.to(label, { opacity: 0, scale: 0.8, duration: 0.25 });
       setActive(false);
@@ -101,9 +101,9 @@ export default function Cursor() {
           width: 5,
           height: 5,
           borderRadius: "50%",
-          backgroundColor: "var(--color-light)",
+          backgroundColor: "var(--color-cursor-dot)",
           pointerEvents: "none",
-          zIndex: "var(--z-cursor)" as unknown as number,
+          zIndex: 9999,
           transform: "translate(-50%, -50%)",
           willChange: "transform",
         }}
@@ -119,9 +119,9 @@ export default function Cursor() {
           width: 32,
           height: 32,
           borderRadius: "50%",
-          border: "1px solid rgba(255,255,255,0.25)",
+          border: "1px solid var(--color-cursor-ring)",
           pointerEvents: "none",
-          zIndex: "var(--z-cursor)" as unknown as number,
+          zIndex: 9999,
           transform: "translate(-50%, -50%)",
           willChange: "transform",
           transition: "border-color 200ms ease",
@@ -136,7 +136,7 @@ export default function Cursor() {
           top: 0,
           left: 0,
           pointerEvents: "none",
-          zIndex: "var(--z-cursor)" as unknown as number,
+          zIndex: 9999,
           transform: "translate(-50%, -50%)",
           opacity: 0,
           scale: "0.8",

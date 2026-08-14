@@ -86,7 +86,7 @@ export default async function AboutPage() {
   return (
     <>
       <Navigation />
-      <main style={{ backgroundColor: "var(--color-primary)", minHeight: "100vh" }}>
+      <main style={{ backgroundColor: "var(--color-bg-base)", minHeight: "100vh" }}>
         {/* Background dot grid */}
         <div
           className="pointer-events-none fixed inset-0 opacity-[0.025]"

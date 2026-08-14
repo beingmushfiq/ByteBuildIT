@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import gsap from "gsap";
 
 /* ── Nav structure ──────────────────────────────────────────── */
@@ -218,6 +218,9 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
   );
 }
 
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useTheme } from "@/components/ui/ThemeProvider";
+
 /* ── Top bar ─────────────────────────────────────────────────── */
 function TopBar({ onCommandPalette }: { onCommandPalette: () => void }) {
   const pathname = usePathname();
@@ -256,6 +259,9 @@ function TopBar({ onCommandPalette }: { onCommandPalette: () => void }) {
       </h1>
 
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+        {/* Theme Toggle */}
+        <ThemeToggle variant="compact" />
+
         {/* Command palette trigger */}
         <button
           onClick={onCommandPalette}
@@ -263,27 +269,27 @@ function TopBar({ onCommandPalette }: { onCommandPalette: () => void }) {
           style={{
             display: "flex", alignItems: "center", gap: "var(--space-2)",
             padding: "5px var(--space-3)",
-            backgroundColor: "rgba(255,255,255,0.04)",
+            backgroundColor: "var(--color-bg-subtle)",
             border: "1px solid var(--color-admin-border)",
             borderRadius: "var(--radius-lg)",
             cursor: "pointer",
             fontFamily: "var(--font-mono)", fontSize: "11px",
-            color: "var(--color-gray-500)",
+            color: "var(--color-muted)",
             transition: "all 150ms ease",
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.07)";
-            e.currentTarget.style.color = "var(--color-muted)";
+            e.currentTarget.style.backgroundColor = "var(--color-admin-hover)";
+            e.currentTarget.style.color = "var(--color-light)";
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)";
-            e.currentTarget.style.color = "var(--color-gray-500)";
+            e.currentTarget.style.backgroundColor = "var(--color-bg-subtle)";
+            e.currentTarget.style.color = "var(--color-muted)";
           }}
         >
           <span>⌘</span>
           <span>Search...</span>
           <kbd style={{
-            fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--color-gray-700)",
+            fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--color-gray-600)",
             border: "1px solid var(--color-admin-border)", borderRadius: "var(--radius-xs)",
             padding: "1px 4px",
           }}>K</kbd>
@@ -298,11 +304,11 @@ function TopBar({ onCommandPalette }: { onCommandPalette: () => void }) {
             display: "flex", alignItems: "center", gap: "var(--space-1)",
             fontFamily: "var(--font-mono)", fontSize: "10px",
             letterSpacing: "0.06em", textTransform: "uppercase",
-            color: "var(--color-gray-600)", textDecoration: "none",
+            color: "var(--color-muted)", textDecoration: "none",
             transition: "color 150ms ease",
           }}
-          onMouseEnter={e => (e.currentTarget.style.color = "var(--color-muted)")}
-          onMouseLeave={e => (e.currentTarget.style.color = "var(--color-gray-600)")}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--color-light)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--color-muted)")}
         >
           View site ↗
         </Link>
@@ -313,6 +319,7 @@ function TopBar({ onCommandPalette }: { onCommandPalette: () => void }) {
 
 /* ── Command Palette ─────────────────────────────────────────── */
 const PALETTE_COMMANDS = [
+  { label: "Toggle Dark / Light Mode (Shift+D)", href: "#theme-toggle", category: "Action", isAction: true },
   { label: "Go to Dashboard",    href: "/admin",            category: "Navigate" },
   { label: "Go to Projects",     href: "/admin/projects",   category: "Navigate" },
   { label: "Go to Leads",        href: "/admin/leads",      category: "Navigate" },
@@ -326,6 +333,8 @@ const PALETTE_COMMANDS = [
 function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery]     = useState("");
   const [cursor, setCursor]   = useState(0);
+  const { toggleTheme }       = useTheme();
+  const router                = useRouter();
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef   = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLInputElement>(null);
@@ -333,6 +342,16 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
   const results = PALETTE_COMMANDS.filter(c =>
     c.label.toLowerCase().includes(query.toLowerCase())
   );
+
+  const executeCommand = (cmd: (typeof PALETTE_COMMANDS)[number]) => {
+    if (cmd.isAction && cmd.href === "#theme-toggle") {
+      toggleTheme();
+      onClose();
+    } else {
+      router.push(cmd.href);
+      onClose();
+    }
+  };
 
   useEffect(() => {
     if (!overlayRef.current || !panelRef.current) return;
@@ -356,8 +375,7 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
     if (e.key === "ArrowUp")   setCursor(c => Math.max(c - 1, 0));
     if (e.key === "Escape")    onClose();
     if (e.key === "Enter" && results[cursor]) {
-      window.location.href = results[cursor].href;
-      onClose();
+      executeCommand(results[cursor]);
     }
   };
 
@@ -397,7 +415,7 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
           padding: "var(--space-4) var(--space-5)",
           borderBottom: "1px solid var(--color-admin-border)",
         }}>
-          <span style={{ color: "var(--color-gray-600)", flexShrink: 0 }}>⌘</span>
+          <span style={{ color: "var(--color-muted)", flexShrink: 0 }}>⌘</span>
           <input
             ref={inputRef}
             type="text"
@@ -414,7 +432,7 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
           />
           <kbd style={{
             fontFamily: "var(--font-mono)", fontSize: "9px",
-            color: "var(--color-gray-700)",
+            color: "var(--color-muted)",
             border: "1px solid var(--color-admin-border)",
             borderRadius: "var(--radius-xs)", padding: "2px 6px",
           }}>Esc</kbd>
@@ -425,22 +443,21 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
           {results.length === 0 ? (
             <div style={{
               padding: "var(--space-6)", textAlign: "center",
-              fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-gray-600)",
+              fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-muted)",
             }}>
               No commands found
             </div>
           ) : (
             results.map((cmd, i) => (
-              <Link
+              <div
                 key={cmd.href + cmd.label}
-                href={cmd.href}
-                onClick={onClose}
+                onClick={() => executeCommand(cmd)}
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   padding: "var(--space-2) var(--space-3)",
                   borderRadius: "var(--radius-lg)",
-                  textDecoration: "none",
-                  backgroundColor: cursor === i ? "rgba(46,74,249,0.12)" : "transparent",
+                  cursor: "pointer",
+                  backgroundColor: cursor === i ? "var(--color-accent-dim)" : "transparent",
                   transition: "background-color 100ms ease",
                 }}
                 onMouseEnter={() => setCursor(i)}
@@ -455,14 +472,14 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
                 <span style={{
                   fontFamily: "var(--font-mono)", fontSize: "9px",
                   letterSpacing: "0.08em", textTransform: "uppercase",
-                  color: "var(--color-gray-700)",
+                  color: "var(--color-muted)",
                   padding: "2px 6px",
-                  backgroundColor: "rgba(255,255,255,0.04)",
+                  backgroundColor: "var(--color-bg-subtle)",
                   borderRadius: "var(--radius-xs)",
                 }}>
                   {cmd.category}
                 </span>
-              </Link>
+              </div>
             ))
           )}
         </div>

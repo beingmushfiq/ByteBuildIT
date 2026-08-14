@@ -7,59 +7,46 @@ import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FIELDS = [
-  { id: "name",    label: "Your name",    type: "text",  placeholder: "Jane Smith",                required: true  },
-  { id: "email",   label: "Work email",   type: "email", placeholder: "jane@company.com",           required: true  },
-  { id: "company", label: "Company",      type: "text",  placeholder: "Acme Corp",                  required: false },
-  { id: "problem", label: "What's not working?", type: "textarea", placeholder: "Describe the process that's costing you time, money, or errors...", required: true },
-] as const;
+const SCOPES = [
+  "Order & Inventory Automation",
+  "ERP & Data Unification",
+  "Field Workforce Dispatch",
+  "Document AI & OCR",
+  "SaaS Digital Product",
+  "Other Custom System",
+];
 
 export default function Contact() {
-  const sectionRef  = useRef<HTMLElement>(null);
-  const panelRef    = useRef<HTMLDivElement>(null);
-  const overlayRef  = useRef<HTMLDivElement>(null);
-  const [open, setOpen]   = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [selectedScopes, setSelectedScopes] = useState<string[]>(["Order & Inventory Automation"]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [form, setForm] = useState({ name: "", email: "", company: "", problem: "" });
 
   useGSAP(() => {
-    ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: "top 75%",
-      onEnter: () => {
-        gsap.from("[data-ct-tag]",  { opacity: 0, y: 16, duration: 0.6, ease: "power3.out" });
-        gsap.from("[data-ct-h1]",   { opacity: 0, y: 40, duration: 0.8, delay: 0.1, ease: "power3.out" });
-        gsap.from("[data-ct-sub]",  { opacity: 0, y: 20, duration: 0.6, delay: 0.3, ease: "power3.out" });
-        gsap.from("[data-ct-cta]",  { opacity: 0, y: 12, duration: 0.5, delay: 0.5, ease: "power3.out" });
-      },
-    });
+    const section = sectionRef.current;
+    if (!section) return;
+
+    gsap.fromTo(
+      "[data-ct-tag]",
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", clearProps: "all" }
+    );
+    gsap.fromTo(
+      "[data-ct-headline]",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, delay: 0.1, ease: "power3.out", clearProps: "all" }
+    );
+    gsap.fromTo(
+      "[data-ct-form]",
+      { opacity: 0, y: 24 },
+      { opacity: 1, y: 0, duration: 0.6, delay: 0.15, ease: "power3.out", clearProps: "all" }
+    );
   }, { scope: sectionRef });
 
-  const openPanel = () => {
-    setOpen(true);
-    const panel   = panelRef.current;
-    const overlay = overlayRef.current;
-    if (!panel || !overlay) return;
-    gsap.set(panel,   { x: "100%" });
-    gsap.set(overlay, { opacity: 0, display: "block" });
-    gsap.to(overlay, { opacity: 1, duration: 0.25, ease: "power2.out" });
-    gsap.to(panel,   { x: "0%", duration: 0.45, ease: "power3.out" });
-    document.body.style.overflow = "hidden";
-  };
-
-  const closePanel = () => {
-    const panel   = panelRef.current;
-    const overlay = overlayRef.current;
-    if (!panel || !overlay) return;
-    gsap.to(panel,   { x: "100%", duration: 0.35, ease: "power3.in" });
-    gsap.to(overlay, {
-      opacity: 0, duration: 0.3, ease: "power2.in",
-      onComplete: () => {
-        gsap.set(overlay, { display: "none" });
-        setOpen(false);
-        document.body.style.overflow = "";
-      },
-    });
+  const toggleScope = (scope: string) => {
+    setSelectedScopes((prev) =>
+      prev.includes(scope) ? prev.filter((s) => s !== scope) : [...prev, scope]
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,7 +56,7 @@ export default function Contact() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, scopes: selectedScopes }),
       });
       if (res.ok) {
         setStatus("success");
@@ -83,320 +70,373 @@ export default function Contact() {
   };
 
   return (
-    <>
-      {/* ── Section ───────────────────────────────────────── */}
-      <section
-        ref={sectionRef}
-        id="contact"
-        className="section"
-        style={{ backgroundColor: "var(--color-dark)", position: "relative" }}
-      >
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-          background: "linear-gradient(to right, transparent, var(--color-border) 30%, var(--color-border) 70%, transparent)",
-        }} />
-
-        <div className="container">
-          <div style={{ maxWidth: "700px" }}>
-            <span data-ct-tag className="section-label" style={{ marginBottom: "var(--space-8)", display: "flex" }}>
-              Work with us
-            </span>
+    <section
+      ref={sectionRef}
+      id="contact"
+      className="section"
+      style={{
+        backgroundColor: "var(--color-bg-surface)",
+        position: "relative",
+        borderTop: "1px solid var(--color-border)",
+      }}
+    >
+      <div className="container" style={{ position: "relative", zIndex: 2 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            gap: "var(--space-16)",
+            alignItems: "start",
+          }}
+          className="lg:!grid-cols-[1fr_1.2fr]"
+        >
+          {/* Left Column: Direct Outreach & SLA */}
+          <div>
+            <div data-ct-tag style={{ marginBottom: "var(--space-4)" }}>
+              <span className="section-label">
+                Start an Engineering Sprint
+              </span>
+            </div>
 
             <h2
-              data-ct-h1
+              data-ct-headline
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(3rem, 8vw, 7rem)",
-                fontWeight: 700,
-                letterSpacing: "-0.04em",
-                lineHeight: 0.95,
-                marginBottom: "var(--space-8)",
+                fontSize: "clamp(2.25rem, 5vw, 4rem)",
+                fontWeight: 800,
+                lineHeight: 1.05,
+                letterSpacing: "-0.035em",
+                color: "var(--color-light)",
+                marginBottom: "var(--space-6)",
               }}
             >
-              <span style={{ color: "var(--color-light)" }}>What&apos;s</span>
-              <br />
-              <span style={{ color: "var(--color-light)" }}>wasting</span>
-              <br />
-              <span style={{ color: "var(--color-accent)" }}>your time?</span>
+              Let&apos;s eliminate your operational bottlenecks.
             </h2>
 
             <p
-              data-ct-sub
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "clamp(1rem, 1.4vw, 1.1rem)",
+                fontSize: "clamp(1.05rem, 1.3vw, 1.15rem)",
                 lineHeight: 1.75,
                 color: "var(--color-muted)",
-                maxWidth: "460px",
-                marginBottom: "var(--space-10)",
+                marginBottom: "var(--space-8)",
               }}
             >
-              Tell us about the process that&apos;s costing you time, money, or errors.
-              No sales pitch. No templates. Just a real conversation about your operation.
+              Whether you need to replace fragile spreadsheets, connect isolated SaaS tools,
+              or build an end-to-end custom operational platform, we architect and deploy fast.
             </p>
 
-            <button
-              data-ct-cta
-              onClick={openPanel}
-              className="group"
+            <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "var(--space-2)",
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-xs)",
-                fontWeight: 500,
-                letterSpacing: "0.07em",
-                textTransform: "uppercase",
-                color: "var(--color-white)",
-                backgroundColor: "var(--color-accent)",
-                padding: "0.875rem 1.75rem",
-                borderRadius: "var(--radius-md)",
-                border: "none",
-                cursor: "pointer",
-                transition: "background-color 220ms ease, box-shadow 220ms ease",
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = "var(--color-accent-hover)";
-                e.currentTarget.style.boxShadow = "var(--shadow-glow)";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = "var(--color-accent)";
-                e.currentTarget.style.boxShadow = "none";
+                display: "flex",
+                flexDirection: "column",
+                gap: "var(--space-4)",
+                padding: "var(--space-6)",
+                borderRadius: "var(--radius-xl)",
+                backgroundColor: "var(--color-bg-card)",
+                border: "1px solid var(--color-border)",
               }}
             >
-              Bring us the problem
-              <span style={{ display: "inline-block", transition: "transform 220ms var(--ease-spring)" }}
-                className="group-hover:[transform:translate(2px,-2px)]"
-              >↗</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Overlay ────────────────────────────────────────── */}
-      <div
-        ref={overlayRef}
-        onClick={closePanel}
-        style={{
-          display: "none",
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "rgba(0,0,0,0.65)",
-          zIndex: "var(--z-overlay)" as unknown as number,
-          backdropFilter: "blur(4px)",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* ── Slide-in Panel ─────────────────────────────────── */}
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Start a project"
-        style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: "min(560px, 100vw)",
-          zIndex: "var(--z-modal)" as unknown as number,
-          backgroundColor: "var(--color-deep-navy)",
-          borderLeft: "1px solid var(--color-border)",
-          display: "flex",
-          flexDirection: "column",
-          transform: "translateX(100%)",
-          willChange: "transform",
-        }}
-      >
-        {/* Panel header */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "var(--space-6) var(--space-8)",
-          borderBottom: "1px solid var(--color-border)",
-          flexShrink: 0,
-        }}>
-          <div>
-            <div style={{
-              fontFamily: "var(--font-mono)", fontSize: "10px",
-              letterSpacing: "0.1em", textTransform: "uppercase",
-              color: "var(--color-muted)", marginBottom: "var(--space-1)",
-            }}>
-              New inquiry
-            </div>
-            <div style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "var(--text-xl)",
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              color: "var(--color-light)",
-            }}>
-              Tell us the problem
-            </div>
-          </div>
-
-          <button
-            onClick={closePanel}
-            aria-label="Close panel"
-            style={{
-              width: 36, height: 36,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-lg)",
-              backgroundColor: "transparent",
-              color: "var(--color-muted)",
-              cursor: "pointer",
-              fontSize: "1.25rem",
-              lineHeight: 1,
-              transition: "color 150ms ease, border-color 150ms ease",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = "var(--color-light)"; e.currentTarget.style.borderColor = "var(--color-border-md)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "var(--color-muted)"; e.currentTarget.style.borderColor = "var(--color-border)"; }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Form */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "var(--space-8)" }}>
-          {status === "success" ? (
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", height: "100%", textAlign: "center",
-              gap: "var(--space-4)",
-            }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: "50%",
-                border: "1px solid rgba(5,150,105,0.5)",
-                backgroundColor: "rgba(5,150,105,0.1)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "1.25rem",
-              }}>
-                ✓
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#10B981", boxShadow: "0 0 10px #10B981" }} />
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, color: "var(--color-light)", textTransform: "uppercase" }}>
+                  Engineering Intake: Active
+                </span>
               </div>
-              <h3 style={{
-                fontFamily: "var(--font-display)", fontSize: "var(--text-2xl)",
-                fontWeight: 700, letterSpacing: "-0.025em", color: "var(--color-light)",
-              }}>
-                Received.
-              </h3>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-sm)", color: "var(--color-muted)", maxWidth: "320px", lineHeight: 1.7 }}>
-                We&apos;ll review your message and follow up within one business day.
+
+              <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--color-muted)", margin: 0, lineHeight: 1.6 }}>
+                Average response time is under 4 business hours. We schedule discovery calls within 24 hours.
               </p>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-              {FIELDS.map(field => (
-                <div key={field.id} style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                  <label
-                    htmlFor={field.id}
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "10px",
-                      fontWeight: 500,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: "var(--color-muted)",
-                    }}
-                  >
-                    {field.label}
-                    {field.required && <span style={{ color: "var(--color-accent)", marginLeft: "2px" }}>*</span>}
-                  </label>
-                  {field.type === "textarea" ? (
-                    <textarea
-                      id={field.id}
-                      name={field.id}
-                      required={field.required}
-                      placeholder={field.placeholder}
-                      rows={5}
-                      autoComplete="off"
-                      suppressHydrationWarning
-                      value={form[field.id as keyof typeof form]}
-                      onChange={e => setForm(f => ({ ...f, [field.id]: e.target.value }))}
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: "var(--text-sm)",
-                        color: "var(--color-light)",
-                        backgroundColor: "rgba(255,255,255,0.04)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: "var(--radius-lg)",
-                        padding: "var(--space-4)",
-                        resize: "vertical",
-                        outline: "none",
-                        transition: "border-color 200ms ease",
-                        lineHeight: 1.6,
-                      }}
-                      onFocus={e => (e.target.style.borderColor = "var(--color-accent)")}
-                      onBlur={e => (e.target.style.borderColor = "var(--color-border)")}
-                    />
-                  ) : (
-                    <input
-                      id={field.id}
-                      name={field.id}
-                      type={field.type}
-                      required={field.required}
-                      placeholder={field.placeholder}
-                      autoComplete={field.id === "email" ? "email" : field.id === "name" ? "name" : field.id === "company" ? "organization" : "on"}
-                      suppressHydrationWarning
-                      value={form[field.id as keyof typeof form]}
-                      onChange={e => setForm(f => ({ ...f, [field.id]: e.target.value }))}
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: "var(--text-sm)",
-                        color: "var(--color-light)",
-                        backgroundColor: "rgba(255,255,255,0.04)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: "var(--radius-lg)",
-                        padding: "var(--space-3) var(--space-4)",
-                        outline: "none",
-                        transition: "border-color 200ms ease",
-                        width: "100%",
-                      }}
-                      onFocus={e => (e.target.style.borderColor = "var(--color-accent)")}
-                      onBlur={e => (e.target.style.borderColor = "var(--color-border)")}
-                    />
-                  )}
-                </div>
-              ))}
+          </div>
 
-              {status === "error" && (
-                <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#F87171" }}>
-                  Something went wrong. Please try again.
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={status === "loading"}
+          {/* Right Column: Executive Initiation Form */}
+          <div
+            data-ct-form
+            className="glass-card"
+            style={{
+              padding: "clamp(24px, 4vw, 40px)",
+              borderRadius: "var(--radius-2xl)",
+              backgroundColor: "var(--color-bg-card)",
+              border: "1px solid var(--color-border)",
+              boxShadow: "var(--shadow-xl)",
+            }}
+          >
+            {status === "success" ? (
+              <div
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "var(--space-2)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-xs)",
-                  fontWeight: 500,
-                  letterSpacing: "0.07em",
-                  textTransform: "uppercase",
-                  color: "var(--color-white)",
-                  backgroundColor: status === "loading" ? "var(--color-gray-700)" : "var(--color-accent)",
-                  padding: "0.875rem var(--space-6)",
-                  borderRadius: "var(--radius-md)",
-                  border: "none",
-                  cursor: status === "loading" ? "not-allowed" : "pointer",
-                  transition: "background-color 200ms ease",
-                  marginTop: "var(--space-2)",
+                  padding: "var(--space-12) var(--space-6)",
+                  textAlign: "center",
                 }}
               >
-                {status === "loading" ? "Sending..." : "Send →"}
-              </button>
-            </form>
-          )}
+                <div
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(16, 185, 129, 0.15)",
+                    border: "2px solid #10B981",
+                    color: "#10B981",
+                    fontSize: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto var(--space-4)",
+                  }}
+                >
+                  ✓
+                </div>
+
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "1.6rem",
+                    fontWeight: 800,
+                    color: "var(--color-light)",
+                    marginBottom: "var(--space-2)",
+                  }}
+                >
+                  Inquiry Received
+                </h3>
+
+                <p
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: "14px",
+                    color: "var(--color-muted)",
+                    maxWidth: "400px",
+                    margin: "0 auto",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Our system architects are reviewing your operational context. We will reach out within 4 business hours.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+                {/* Project Scope Selection */}
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: "var(--color-light)",
+                      marginBottom: "var(--space-3)",
+                    }}
+                  >
+                    1. Select Operational Scope
+                  </label>
+
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                    {SCOPES.map((scope) => {
+                      const isSelected = selectedScopes.includes(scope);
+
+                      return (
+                        <button
+                          key={scope}
+                          type="button"
+                          onClick={() => toggleScope(scope)}
+                          style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            padding: "8px 14px",
+                            borderRadius: "var(--radius-full)",
+                            backgroundColor: isSelected ? "var(--color-accent)" : "var(--color-bg-subtle)",
+                            color: isSelected ? "#FFFFFF" : "var(--color-light)",
+                            border: isSelected ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+                            boxShadow: isSelected ? "0 0 16px rgba(46, 74, 249, 0.4)" : "none",
+                            cursor: "pointer",
+                            transition: "all 150ms ease",
+                          }}
+                        >
+                          {scope}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Name & Email Row */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr",
+                    gap: "var(--space-4)",
+                  }}
+                  className="sm:!grid-cols-2"
+                >
+                  <div>
+                    <label
+                      htmlFor="contact-name"
+                      style={{
+                        display: "block",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        color: "var(--color-muted)",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      Your Name *
+                    </label>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      required
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="Jane Smith"
+                      style={{
+                        width: "100%",
+                        padding: "12px 16px",
+                        borderRadius: "var(--radius-lg)",
+                        backgroundColor: "var(--color-bg-subtle)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-light)",
+                        fontFamily: "var(--font-body)",
+                        fontSize: "14px",
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="contact-email"
+                      style={{
+                        display: "block",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        color: "var(--color-muted)",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      Work Email *
+                    </label>
+                    <input
+                      id="contact-email"
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="jane@company.com"
+                      style={{
+                        width: "100%",
+                        padding: "12px 16px",
+                        borderRadius: "var(--radius-lg)",
+                        backgroundColor: "var(--color-bg-subtle)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-light)",
+                        fontFamily: "var(--font-body)",
+                        fontSize: "14px",
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Company */}
+                <div>
+                  <label
+                    htmlFor="contact-company"
+                    style={{
+                      display: "block",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      color: "var(--color-muted)",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    Organization / Company
+                  </label>
+                  <input
+                    id="contact-company"
+                    type="text"
+                    value={form.company}
+                    onChange={(e) => setForm({ ...form, company: e.target.value })}
+                    placeholder="Acme Operations Inc."
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: "var(--radius-lg)",
+                      backgroundColor: "var(--color-bg-subtle)",
+                      border: "1px solid var(--color-border)",
+                      color: "var(--color-light)",
+                      fontFamily: "var(--font-body)",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                {/* Problem Description */}
+                <div>
+                  <label
+                    htmlFor="contact-problem"
+                    style={{
+                      display: "block",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      color: "var(--color-muted)",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    What process is costing you time, money, or manual errors? *
+                  </label>
+                  <textarea
+                    id="contact-problem"
+                    required
+                    rows={4}
+                    value={form.problem}
+                    onChange={(e) => setForm({ ...form, problem: e.target.value })}
+                    placeholder="Describe your current bottleneck, tools used, and what an ideal automated system should do..."
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: "var(--radius-lg)",
+                      backgroundColor: "var(--color-bg-subtle)",
+                      border: "1px solid var(--color-border)",
+                      color: "var(--color-light)",
+                      fontFamily: "var(--font-body)",
+                      fontSize: "14px",
+                      outline: "none",
+                      resize: "vertical",
+                    }}
+                  />
+                </div>
+
+                {/* Submit CTA */}
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="btn btn-primary"
+                  style={{
+                    width: "100%",
+                    justifyContent: "center",
+                    padding: "16px",
+                    fontSize: "13px",
+                    borderRadius: "var(--radius-lg)",
+                  }}
+                >
+                  <span>{status === "loading" ? "Submitting Inquiry..." : "Submit Project Intake →"}</span>
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
-    </>
+    </section>
   );
 }

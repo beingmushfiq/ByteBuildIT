@@ -6,35 +6,61 @@
    ============================================================ */
 
 :root {
-  /* ── Brand Colors ── */
-  --color-primary: #000F26;
+  /* ── Brand Colors (Dark - Default) ── */
+  --color-primary: #05080F;
   --color-accent: #2E4AF9;
   --color-accent-hover: #4A62FF;
-  --color-accent-dim: rgba(46, 74, 249, 0.12);
-  --color-accent-glow: rgba(46, 74, 249, 0.25);
+  --color-accent-dim: rgba(46, 74, 249, 0.15);
+  --color-accent-glow: rgba(46, 74, 249, 0.35);
   --color-dark: #070B12;
   --color-deep-navy: #0B1424;
-  --color-light: #F7F8FA;
+  --color-light: #F8FAFC;
   --color-white: #FFFFFF;
-  --color-neutral: #D9DEE6;
-  --color-muted: #858D9A;
+  --color-neutral: #E2E8F0;
+  --color-muted: #94A3B8;
+
+  /* ── Semantic Background & Surface Colors ── */
+  --color-bg-base: #05080F;
+  --color-bg-surface: #0B1424;
+  --color-bg-card: #0E1A30;
+  --color-bg-card-hover: #142442;
+  --color-bg-subtle: rgba(255, 255, 255, 0.05);
+  --color-border: rgba(255, 255, 255, 0.14);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(46, 74, 249, 0.6);
+  --color-border-focus: rgba(46, 74, 249, 0.8);
+  --color-grid-dots: rgba(255, 255, 255, 0.07);
+  --color-glow-backdrop: rgba(46, 74, 249, 0.08);
+  --nav-bg: rgba(7, 11, 18, 0.92);
+  --nav-border: rgba(255, 255, 255, 0.12);
 
   /* ── Extended Palette ── */
   --color-navy-50: #0A1A3A;
   --color-navy-100: #081530;
   --color-navy-200: #061026;
-  --color-gray-100: #F0F2F5;
-  --color-gray-200: #E1E5EB;
-  --color-gray-300: #C8CDD6;
-  --color-gray-400: #858D9A;
-  --color-gray-500: #5A6374;
-  --color-gray-600: #3A4252;
-  --color-gray-700: #1E2536;
+  --color-gray-100: #F8FAFC;
+  --color-gray-200: #F1F5F9;
+  --color-gray-300: #E2E8F0;
+  --color-gray-400: #CBD5E1;
+  --color-gray-500: #94A3B8;
+  --color-gray-600: #64748B;
+  --color-gray-700: #334155;
+
+  /* ── Admin Tokens ── */
+  --color-admin-bg: #070B12;
+  --color-admin-panel: #0B1424;
+  --color-admin-raised: #0E1A30;
+  --color-admin-border: rgba(255, 255, 255, 0.12);
+  --color-admin-hover: rgba(255, 255, 255, 0.06);
+
+  /* ── Cursor & UI ── */
+  --color-cursor-dot: #F8FAFC;
+  --color-cursor-ring: rgba(255, 255, 255, 0.35);
 
   /* ── Typography ── */
-  --font-display: var(--font-space-grotesk), 'Space Grotesk', system-ui, sans-serif;
-  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-body: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   /* ── Type Scale ── */
   --text-xs: 0.75rem;
@@ -79,20 +105,21 @@
 
   /* ── Border Radius ── */
   --radius-none: 0;
-  --radius-sm: 2px;
-  --radius-md: 4px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
   --radius-lg: 8px;
   --radius-xl: 12px;
   --radius-2xl: 16px;
   --radius-full: 9999px;
 
   /* ── Shadows ── */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 24px rgba(46, 74, 249, 0.3);
-  --shadow-glow-lg: 0 0 48px rgba(46, 74, 249, 0.2);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 24px rgba(46, 74, 249, 0.35);
+  --shadow-glow-lg: 0 0 48px rgba(46, 74, 249, 0.25);
 
   /* ── Motion ── */
   --duration-fast: 150ms;
@@ -115,25 +142,73 @@
   --z-modal: 300;
   --z-toast: 400;
   --z-tooltip: 500;
+  --z-cursor: 9999;
 }
 
 /* ============================================================
-   TAILWIND THEME EXTENSION
+   LIGHT MODE DESIGN TOKENS
+   Editorial · High Contrast · Crisp Corporate Precision
    ============================================================ */
-@theme inline {
-  --color-primary: var(--color-primary);
-  --color-accent: var(--color-accent);
-  --color-accent-hover: var(--color-accent-hover);
-  --color-dark: var(--color-dark);
-  --color-deep-navy: var(--color-deep-navy);
-  --color-light: var(--color-light);
-  --color-neutral: var(--color-neutral);
-  --color-muted: var(--color-muted);
-  --color-navy-50: var(--color-navy-50);
+[data-theme="light"],
+html.light {
+  /* ── Brand Colors (Light) ── */
+  --color-primary: #F8FAFC;
+  --color-accent: #2E4AF9;
+  --color-accent-hover: #1E3AE8;
+  --color-accent-dim: rgba(46, 74, 249, 0.1);
+  --color-accent-glow: rgba(46, 74, 249, 0.22);
+  --color-dark: #FFFFFF;
+  --color-deep-navy: #EEF2F6;
+  --color-light: #050811;
+  --color-white: #FFFFFF;
+  --color-neutral: #0F172A;
+  --color-muted: #475569;
 
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-  --font-mono: var(--font-mono);
+  /* ── Semantic Background & Surface Colors ── */
+  --color-bg-base: #F8FAFC;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+  --color-bg-card-hover: #F1F5F9;
+  --color-bg-subtle: rgba(15, 23, 42, 0.04);
+  --color-border: rgba(15, 23, 42, 0.12);
+  --color-border-subtle: rgba(15, 23, 42, 0.06);
+  --color-border-hover: rgba(46, 74, 249, 0.5);
+  --color-border-focus: rgba(46, 74, 249, 0.8);
+  --color-grid-dots: rgba(15, 23, 42, 0.08);
+  --color-glow-backdrop: rgba(46, 74, 249, 0.06);
+  --nav-bg: rgba(255, 255, 255, 0.94);
+  --nav-border: rgba(15, 23, 42, 0.1);
+
+  /* ── Extended Palette Inverted for Light Mode ── */
+  --color-navy-50: #E2E8F0;
+  --color-navy-100: #EDF2F7;
+  --color-navy-200: #F8FAFC;
+  --color-gray-100: #0F172A;
+  --color-gray-200: #1E293B;
+  --color-gray-300: #334155;
+  --color-gray-400: #475569;
+  --color-gray-500: #64748B;
+  --color-gray-600: #94A3B8;
+  --color-gray-700: #CBD5E1;
+
+  /* ── Admin Tokens (Light) ── */
+  --color-admin-bg: #F8FAFC;
+  --color-admin-panel: #FFFFFF;
+  --color-admin-raised: #FFFFFF;
+  --color-admin-border: #E2E8F0;
+  --color-admin-hover: rgba(15, 23, 42, 0.05);
+
+  /* ── Cursor & UI ── */
+  --color-cursor-dot: #050811;
+  --color-cursor-ring: rgba(5, 8, 17, 0.4);
+
+  /* ── Shadows (Light Mode Refined) ── */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.09);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.16);
+  --shadow-glow: 0 0 24px rgba(46, 74, 249, 0.22);
+  --shadow-glow-lg: 0 0 48px rgba(46, 74, 249, 0.15);
 }
 
 /* ============================================================
@@ -174,6 +249,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.02em;
+  color: var(--color-light);
 }
 
 .display-heading {
@@ -181,6 +257,19 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.03em;
+  color: var(--color-light);
+}
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
 .label {
@@ -285,7 +374,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   COMPONENT CLASSES
+   COMPONENT CLASSES & AWWWARDS-TIER UTILITIES
    ============================================================ */
 
 /* Buttons */
@@ -295,8 +384,8 @@ h1, h2, h3, h4, h5, h6 {
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-md);
@@ -311,22 +400,25 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--color-accent);
   color: var(--color-white);
   border-color: var(--color-accent);
+  box-shadow: 0 0 20px rgba(46, 74, 249, 0.35);
 }
 
 .btn-primary:hover {
   background-color: var(--color-accent-hover);
-  box-shadow: var(--shadow-glow);
+  box-shadow: 0 0 32px rgba(46, 74, 249, 0.55);
+  transform: translateY(-1px);
 }
 
 .btn-ghost {
   background-color: transparent;
   color: var(--color-light);
-  border-color: var(--color-gray-600);
+  border-color: var(--color-border);
 }
 
 .btn-ghost:hover {
-  border-color: var(--color-light);
-  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-accent);
+  background-color: var(--color-bg-subtle);
+  color: var(--color-light);
 }
 
 .btn-subtle {
@@ -340,24 +432,72 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-light);
 }
 
+/* Glass Card */
+.glass-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--duration-normal) var(--ease-default),
+              box-shadow var(--duration-normal) var(--ease-default),
+              transform var(--duration-normal) var(--ease-default);
+}
+
+.glass-card:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-glow), var(--shadow-lg);
+}
+
+/* Gradient Text */
+.text-gradient-accent {
+  background: linear-gradient(135deg, var(--color-light) 0%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-blue {
+  background: linear-gradient(135deg, #4A62FF 0%, #2E4AF9 50%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glowing Badges & Tags */
+.badge-tech {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-light);
+}
+
 /* Divider */
 .divider {
   width: 100%;
   height: 1px;
-  background-color: var(--color-gray-700);
+  background-color: var(--color-border);
 }
 
 /* Card */
 .card {
-  background-color: var(--color-deep-navy);
-  border: 1px solid var(--color-gray-700);
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   transition: all var(--duration-normal) var(--ease-default);
 }
 
 .card:hover {
-  border-color: var(--color-gray-600);
+  border-color: var(--color-border-hover);
 }
 
 /* ============================================================
@@ -378,3 +518,33 @@ html.lenis, html.lenis body {
 .lenis.lenis-stopped {
   overflow: hidden;
 }
+
+/* ============================================================
+   VIEW TRANSITIONS & THEME SWITCH PORTAL
+   Hardware-accelerated circular reveal across viewport
+   ============================================================ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 99999;
+}
+
+/* Theme switch shockwave canvas overlay */
+#theme-shockwave-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99998;
+  width: 100vw;
+  height: 100vh;
+}
+
+

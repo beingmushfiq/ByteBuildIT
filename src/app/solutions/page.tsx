@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Solution } from "@/lib/supabase/types";
+import Navigation from "@/components/navigation/Navigation";
+import Footer from "@/components/sections/Footer";
 
 // ── Metadata ─────────────────────────────────────────────────────
 
@@ -23,50 +25,57 @@ interface SolutionCategory {
   title: string;
   description: string;
   accent: string;
+  defaultCapabilities: string[];
 }
 
 const CATEGORIES: SolutionCategory[] = [
   {
     id: "business-systems",
-    title: "Business Systems",
+    title: "Business Systems & Operations",
     description:
       "Dashboards, ERPs, and operational platforms that centralize your business data and surface what matters.",
     accent: "#2E4AF9",
+    defaultCapabilities: ["Custom ERP", "Centralized Data Hub", "Permission Matrices", "Audit Trails"],
   },
   {
     id: "industry-software",
-    title: "Industry Software",
+    title: "Industry & Domain Software",
     description:
-      "Domain-specific tools built around the workflows, regulations, and language of your industry.",
-    accent: "#22C55E",
+      "Domain-specific tools built around the workflows, regulations, and language of your vertical.",
+    accent: "#7C3AED",
+    defaultCapabilities: ["Field Logistics", "Manufacturing Execution", "Clinical Portals", "Custom Inventory"],
   },
   {
     id: "automation",
-    title: "Automation",
+    title: "Workflow & Event Automation",
     description:
       "End-to-end workflows that eliminate manual handoffs, reduce errors, and run without supervision.",
-    accent: "#F59E0B",
+    accent: "#059669",
+    defaultCapabilities: ["Webhook Integrations", "Async Workers", "Data Sync", "Error Reconciliation"],
   },
   {
     id: "ai-intelligence",
-    title: "AI & Intelligence",
+    title: "Applied AI & Intelligence",
     description:
-      "Data pipelines, classification engines, and intelligent systems that learn from your operations.",
-    accent: "#A78BFA",
+      "Data pipelines, document extraction, and intelligent systems that automate cognitive tasks.",
+    accent: "#D97706",
+    defaultCapabilities: ["Document OCR", "LLM Reasoning", "Anomaly Detection", "Automated Triage"],
   },
   {
     id: "digital-products",
-    title: "Digital Products",
+    title: "SaaS & Digital Products",
     description:
       "Customer-facing applications designed for scale, usability, and seamless multi-platform delivery.",
     accent: "#EC4899",
+    defaultCapabilities: ["Multi-Tenant DB", "Stripe Billing", "User Auth", "Customer Portals"],
   },
   {
     id: "infrastructure",
-    title: "Infrastructure",
+    title: "Cloud & Infrastructure Systems",
     description:
-      "Cloud-native architectures, CI/CD pipelines, and monitoring systems that keep everything running.",
-    accent: "#06B6D4",
+      "Cloud-native architectures, CI/CD pipelines, and monitoring systems that keep everything reliable.",
+    accent: "#0F766E",
+    defaultCapabilities: ["PostgreSQL", "Edge Workers", "99.9% Uptime", "Zero-Downtime Deploy"],
   },
 ];
 
@@ -75,7 +84,6 @@ const CATEGORIES: SolutionCategory[] = [
 function groupSolutions(solutions: Solution[]): Map<string, Solution[]> {
   const grouped = new Map<string, Solution[]>();
 
-  // Initialize all categories
   for (const cat of CATEGORIES) {
     grouped.set(cat.id, []);
   }
@@ -95,7 +103,6 @@ function groupSolutions(solutions: Solution[]): Map<string, Solution[]> {
       }
     }
 
-    // Default to first category if no match
     if (!matched) {
       grouped.get(CATEGORIES[0].id)!.push(solution);
     }
@@ -107,259 +114,218 @@ function groupSolutions(solutions: Solution[]): Map<string, Solution[]> {
 // ── Page Component ───────────────────────────────────────────────
 
 export default async function SolutionsPage() {
-  const supabase = await createClient();
+  let solutions: Solution[] = [];
+  try {
+    const supabase = await createClient();
+    const { data: solutionsData } = await supabase
+      .from("solutions")
+      .select("*")
+      .eq("is_published", true)
+      .order("sort_order", { ascending: true })
+      .order("title", { ascending: true });
 
-  const { data: solutionsData } = await supabase
-    .from("solutions")
-    .select("*")
-    .eq("is_published", true)
-    .order("sort_order", { ascending: true })
-    .order("title", { ascending: true });
+    solutions = (solutionsData ?? []) as Solution[];
+  } catch {
+    solutions = [];
+  }
 
-  const solutions = (solutionsData ?? []) as Solution[];
   const grouped = groupSolutions(solutions);
 
   return (
-    <main style={{ backgroundColor: "var(--color-primary)", minHeight: "100vh" }}>
-      {/* Background dot grid */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.025]"
-        aria-hidden="true"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, var(--color-light) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
+    <>
+      <Navigation />
+      <main style={{ backgroundColor: "var(--color-bg-base)", minHeight: "100vh" }}>
+        <div
+          className="container"
+          style={{
+            paddingTop: "var(--space-32)",
+            paddingBottom: "var(--space-24)",
+          }}
+        >
+          {/* Page Header */}
+          <div style={{ maxWidth: "700px", marginBottom: "var(--space-16)" }}>
+            <span className="section-label" style={{ marginBottom: "var(--space-4)", display: "inline-block" }}>
+              Engineering Capabilities
+            </span>
 
-      <div
-        className="relative z-10 mx-auto"
-        style={{
-          maxWidth: "var(--container-max)",
-          padding: "var(--space-32) var(--space-6) var(--space-24)",
-        }}
-      >
-        {/* ── Page Header ─────────────────────────────────── */}
-        <div style={{ marginBottom: "var(--space-20)" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-sm)",
-              fontWeight: 500,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "var(--color-accent)",
-              display: "block",
-              marginBottom: "var(--space-6)",
-            }}
-          >
-            02
-          </span>
+            <h1
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 800,
+                fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
+                lineHeight: 1.05,
+                letterSpacing: "-0.035em",
+                color: "var(--color-light)",
+                marginBottom: "var(--space-4)",
+              }}
+            >
+              WHAT WE <span style={{ color: "var(--color-accent)" }}>BUILD</span>
+            </h1>
 
-          <h1
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 700,
-              fontSize: "clamp(2.5rem, 6vw, 5rem)",
-              lineHeight: 1.05,
-              letterSpacing: "-0.03em",
-              color: "var(--color-light)",
-              marginBottom: "var(--space-4)",
-            }}
-          >
-            WHAT WE{" "}
-            <span style={{ color: "var(--color-accent)" }}>BUILD</span>
-          </h1>
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(1rem, 1.3vw, 1.15rem)",
+                lineHeight: 1.7,
+                color: "var(--color-muted)",
+              }}
+            >
+              From raw business friction to production software. We engineer systems across six core
+              capability domains, purpose-built around your exact operational realities.
+            </p>
+          </div>
 
-          <div
-            style={{
-              width: "48px",
-              height: "2px",
-              backgroundColor: "var(--color-accent)",
-              marginBottom: "var(--space-8)",
-            }}
-          />
+          {/* Categories */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-16)" }}>
+            {CATEGORIES.map((category) => {
+              const categorySolutions = grouped.get(category.id) ?? [];
 
-          <p
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "clamp(1rem, 1.3vw, 1.125rem)",
-              lineHeight: 1.7,
-              color: "var(--color-muted)",
-              maxWidth: "560px",
-            }}
-          >
-            From workflow to software. We build across six solution categories,
-            each designed around how your business actually operates.
-          </p>
-        </div>
-
-        {/* ── Categories ──────────────────────────────────── */}
-        <div className="grid gap-12 lg:gap-16">
-          {CATEGORIES.map((category) => {
-            const categorySolutions = grouped.get(category.id) ?? [];
-
-            return (
-              <section key={category.id}>
-                {/* Category Header */}
-                <div style={{ marginBottom: "var(--space-8)" }}>
+              return (
+                <section
+                  key={category.id}
+                  className="glass-card"
+                  style={{
+                    padding: "var(--space-8)",
+                    borderRadius: "var(--radius-2xl)",
+                    backgroundColor: "var(--color-bg-card)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                >
+                  {/* Category Header */}
                   <div
-                    className="flex items-center gap-3"
-                    style={{ marginBottom: "var(--space-3)" }}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: "var(--space-4)",
+                      marginBottom: "var(--space-6)",
+                      paddingBottom: "var(--space-4)",
+                      borderBottom: "1px solid var(--color-border)",
+                    }}
                   >
-                    <div
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "var(--radius-full)",
-                        backgroundColor: category.accent,
-                      }}
-                    />
-                    <h2
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontWeight: 700,
-                        fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
-                        lineHeight: 1.2,
-                        letterSpacing: "-0.02em",
-                        color: "var(--color-light)",
-                      }}
-                    >
-                      {category.title}
-                    </h2>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <span
+                        style={{
+                          width: "10px",
+                          height: "10px",
+                          borderRadius: "50%",
+                          backgroundColor: category.accent,
+                          boxShadow: `0 0 10px ${category.accent}`,
+                        }}
+                      />
+                      <h2
+                        style={{
+                          fontFamily: "var(--font-display)",
+                          fontWeight: 800,
+                          fontSize: "clamp(1.35rem, 2.5vw, 1.85rem)",
+                          letterSpacing: "-0.02em",
+                          color: "var(--color-light)",
+                        }}
+                      >
+                        {category.title}
+                      </h2>
+                    </div>
+
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                      {category.defaultCapabilities.map((cap) => (
+                        <span
+                          key={cap}
+                          style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "10px",
+                            padding: "3px 8px",
+                            borderRadius: "var(--radius-xs)",
+                            backgroundColor: "var(--color-bg-subtle)",
+                            border: "1px solid var(--color-border)",
+                            color: "var(--color-muted)",
+                          }}
+                        >
+                          {cap}
+                        </span>
+                      ))}
+                    </div>
                   </div>
+
                   <p
                     style={{
                       fontFamily: "var(--font-body)",
-                      fontSize: "var(--text-sm)",
-                      lineHeight: 1.7,
+                      fontSize: "1rem",
+                      lineHeight: 1.65,
                       color: "var(--color-muted)",
-                      maxWidth: "480px",
+                      marginBottom: "var(--space-6)",
+                      maxWidth: "680px",
                     }}
                   >
                     {category.description}
                   </p>
-                </div>
 
-                {/* Solutions in this category */}
-                {categorySolutions.length > 0 ? (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {categorySolutions.map((solution) => (
-                      <Link
-                        key={solution.id}
-                        href={`/solutions/${solution.slug}`}
-                        style={{ textDecoration: "none" }}
-                      >
-                        <div
-                          style={{
-                            backgroundColor: "var(--color-deep-navy)",
-                            border: "1px solid var(--color-gray-700)",
-                            borderRadius: "var(--radius-lg)",
-                            padding: "var(--space-6)",
-                            height: "100%",
-                            transition:
-                              "all var(--duration-normal) var(--ease-default)",
-                          }}
+                  {/* Solutions in this category if available */}
+                  {categorySolutions.length > 0 && (
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr",
+                        gap: "var(--space-4)",
+                      }}
+                      className="sm:!grid-cols-2 lg:!grid-cols-3"
+                    >
+                      {categorySolutions.map((solution) => (
+                        <Link
+                          key={solution.id}
+                          href={`/solutions/${solution.slug}`}
+                          style={{ textDecoration: "none" }}
                         >
-                          {/* Icon placeholder */}
-                          {solution.icon_name && (
-                            <div
-                              className="mb-3 flex h-10 w-10 items-center justify-center"
-                              style={{
-                                backgroundColor: `${category.accent}12`,
-                                border: `1px solid ${category.accent}30`,
-                                borderRadius: "var(--radius-md)",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: "var(--text-lg)",
-                                  color: category.accent,
-                                }}
-                              >
-                                ●
-                              </span>
-                            </div>
-                          )}
-
-                          <h3
+                          <div
                             style={{
-                              fontFamily: "var(--font-display)",
-                              fontWeight: 600,
-                              fontSize: "var(--text-lg)",
-                              lineHeight: 1.3,
-                              color: "var(--color-light)",
-                              marginBottom: "var(--space-2)",
+                              backgroundColor: "var(--color-bg-subtle)",
+                              border: "1px solid var(--color-border)",
+                              borderRadius: "var(--radius-xl)",
+                              padding: "var(--space-6)",
+                              height: "100%",
+                              transition: "all 200ms ease",
                             }}
                           >
-                            {solution.title}
-                          </h3>
-
-                          {solution.description && (
-                            <p
+                            <h3
                               style={{
-                                fontFamily: "var(--font-body)",
-                                fontSize: "var(--text-sm)",
-                                lineHeight: 1.6,
-                                color: "var(--color-muted)",
-                                display: "-webkit-box",
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
+                                fontFamily: "var(--font-display)",
+                                fontWeight: 700,
+                                fontSize: "1.1rem",
+                                color: "var(--color-light)",
+                                marginBottom: "var(--space-2)",
                               }}
                             >
-                              {solution.description}
-                            </p>
-                          )}
+                              {solution.title}
+                            </h3>
 
-                          {/* Features preview */}
-                          {solution.features &&
-                            solution.features.length > 0 && (
-                              <div
-                                className="mt-4 flex flex-wrap gap-2"
+                            {solution.description && (
+                              <p
+                                style={{
+                                  fontFamily: "var(--font-body)",
+                                  fontSize: "13px",
+                                  lineHeight: 1.6,
+                                  color: "var(--color-muted)",
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 3,
+                                  WebkitBoxOrient: "vertical",
+                                  overflow: "hidden",
+                                }}
                               >
-                                {solution.features.slice(0, 3).map((feature) => (
-                                  <span
-                                    key={feature}
-                                    style={{
-                                      fontFamily: "var(--font-mono)",
-                                      fontSize: "10px",
-                                      fontWeight: 500,
-                                      letterSpacing: "0.03em",
-                                      color: category.accent,
-                                      backgroundColor: `${category.accent}10`,
-                                      border: `1px solid ${category.accent}20`,
-                                      borderRadius: "var(--radius-full)",
-                                      padding: "3px 10px",
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
-                                    {feature}
-                                  </span>
-                                ))}
-                              </div>
+                                {solution.description}
+                              </p>
                             )}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "var(--text-sm)",
-                      color: "var(--color-gray-500)",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    Solutions in this category coming soon.
-                  </p>
-                )}
-              </section>
-            );
-          })}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

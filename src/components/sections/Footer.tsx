@@ -26,10 +26,10 @@ export default function Footer() {
   return (
     <footer
       style={{
-        backgroundColor: "var(--color-dark)",
+        backgroundColor: "var(--color-bg-base)",
         borderTop: "1px solid var(--color-border)",
-        paddingTop: "var(--space-16)",
-        paddingBottom: "var(--space-10)",
+        paddingTop: "var(--space-20)",
+        paddingBottom: "var(--space-12)",
       }}
     >
       <div className="container">
@@ -79,7 +79,7 @@ export default function Footer() {
                 fontWeight: 500,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: "var(--color-gray-600)",
+                color: "var(--color-muted)",
                 marginBottom: "var(--space-4)",
               }}>
                 {group}
@@ -122,7 +122,7 @@ export default function Footer() {
             fontFamily: "var(--font-mono)",
             fontSize: "10px",
             letterSpacing: "0.06em",
-            color: "var(--color-gray-700)",
+            color: "var(--color-muted)",
           }}>
             © {year} ByteBuildIT. All rights reserved.
           </p>
@@ -135,12 +135,12 @@ export default function Footer() {
                   fontFamily: "var(--font-mono)",
                   fontSize: "10px",
                   letterSpacing: "0.06em",
-                  color: "var(--color-gray-700)",
+                  color: "var(--color-muted)",
                   textDecoration: "none",
                   transition: "color 200ms ease",
                 }}
-                onMouseEnter={e => (e.currentTarget.style.color = "var(--color-muted)")}
-                onMouseLeave={e => (e.currentTarget.style.color = "var(--color-gray-700)")}
+                onMouseEnter={e => (e.currentTarget.style.color = "var(--color-light)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "var(--color-muted)")}
               >
                 {item}
               </Link>

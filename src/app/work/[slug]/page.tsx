@@ -96,7 +96,7 @@ export default async function CaseStudyPage(
   return (
     <>
       <Navigation />
-      <main style={{ backgroundColor: "var(--color-dark)", minHeight: "100vh" }}>
+      <main style={{ backgroundColor: "var(--color-bg-base)", minHeight: "100vh" }}>
 
         {/* ── Hero ──────────────────────────────────────── */}
         <section style={{ paddingTop: "var(--space-40)", paddingBottom: "var(--space-16)", borderBottom: "1px solid var(--color-border)" }}>

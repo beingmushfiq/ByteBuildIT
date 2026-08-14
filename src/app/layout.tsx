@@ -55,6 +55,31 @@ export const viewport: Viewport = {
   themeColor: "#05080F",
 };
 
+import Script from "next/script";
+import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import FloatingThemeToggle from "@/components/ui/FloatingThemeToggle";
+
+const THEME_SCRIPT = `
+  (function() {
+    try {
+      var stored = localStorage.getItem('bytebuildit-theme');
+      var theme = stored;
+      if (!theme) {
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = prefersDark ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      }
+    } catch (e) {}
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -64,10 +89,20 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }}
+        />
+      </head>
       <body>
-        <Cursor />
-        {children}
+        <ThemeProvider>
+          <Cursor />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

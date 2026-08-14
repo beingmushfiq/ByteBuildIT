@@ -1,317 +1,255 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const CATEGORIES = [
+const CAPABILITIES = [
   {
-    id: "systems",
-    label: "Business Systems",
     abbr: "01",
-    description:
-      "End-to-end operational platforms that replace disconnected tools with a single, authoritative source of truth. Order management, inventory, customer ops, field operations.",
-    capabilities: ["Order management", "Inventory control", "Customer portals", "Operational dashboards", "Process automation"],
+    title: "Operational Engines & ERP",
+    desc: "End-to-end operational software that eliminates fragmented spreadsheets. Order routing, automated stock reconciliation, and central data models.",
+    chips: ["Order Routing", "Live Inventory", "ACID Data Models", "Audit Logs"],
     accent: "#2E4AF9",
-    projects: ["OrderShield", "StaffSync"],
+    metric: "100% Data Cohesion",
   },
   {
-    id: "industry",
-    label: "Industry Software",
     abbr: "02",
-    description:
-      "Domain-specific software for industries where generic SaaS doesn't fit: logistics, manufacturing, professional services, healthcare admin, construction.",
-    capabilities: ["Logistics platforms", "Manufacturing ops", "Healthcare admin", "Field service", "Compliance systems"],
+    title: "Domain & Industry Software",
+    desc: "Specialized platforms for logistics, manufacturing, clinical workflows, and field operations where off-the-shelf SaaS fails to fit.",
+    chips: ["Logistics Dispatch", "Manufacturing Ops", "Clinical Portals", "Field Service"],
     accent: "#7C3AED",
-    projects: ["RouteIQ", "ClinicOS"],
+    metric: "Zero Generic Friction",
   },
   {
-    id: "automation",
-    label: "Automation",
     abbr: "03",
-    description:
-      "Eliminate the manual work that consumes your team. We design automation around your actual processes — not a tool's limitations.",
-    capabilities: ["Process automation", "Document processing", "Data pipelines", "Integration middleware", "Scheduled workflows"],
+    title: "Event-Driven Automation",
+    desc: "Remove human copy-pasting from operational handoffs. We build high-throughput integration middleware and webhook pipelines.",
+    chips: ["Event Webhooks", "Pipeline Orchestration", "Async Workers", "Error Retries"],
     accent: "#059669",
-    projects: ["InvoiceFlow", "DataBridge"],
+    metric: "Sub-Second Latency",
   },
   {
-    id: "ai",
-    label: "AI & Intelligence",
     abbr: "04",
-    description:
-      "Applied AI where it creates real operational leverage: intelligent document extraction, decision support, anomaly detection, and prediction — not AI for the sake of it.",
-    capabilities: ["Document AI", "Decision support", "Anomaly detection", "Predictive analytics", "LLM integrations"],
+    title: "Applied AI & Intelligence",
+    desc: "Machine intelligence applied strictly where it drives business leverage: document extraction, decision validation, and predictive scheduling.",
+    chips: ["Document OCR", "LLM Reasoning", "Anomaly Detection", "Automated Triage"],
     accent: "#D97706",
-    projects: ["DocuSense", "AuditMind"],
+    metric: "10x Document Speed",
   },
   {
-    id: "products",
-    label: "Digital Products",
     abbr: "05",
-    description:
-      "When an internal system solves a problem well enough to become a product. We take operational systems and productize them for broader markets.",
-    capabilities: ["SaaS productization", "B2B platforms", "API products", "Multi-tenant architecture", "Product strategy"],
+    title: "Digital Productization (SaaS)",
+    desc: "Transform internal operational software into multi-tenant SaaS products ready for commercial enterprise deployment.",
+    chips: ["Multi-Tenant DB", "Stripe Billing", "Tenant Isolation", "Role Auth"],
     accent: "#DC2626",
-    projects: ["ClearOps", "TrackFlow"],
+    metric: "Commercial Scalability",
   },
   {
-    id: "infra",
-    label: "Infrastructure",
     abbr: "06",
-    description:
-      "The foundation that everything else runs on. Cloud architecture, data infrastructure, API design, security, and the engineering foundations for scale.",
-    capabilities: ["Cloud architecture", "Data engineering", "API design", "Security hardening", "DevOps"],
+    title: "Cloud & Infrastructure Systems",
+    desc: "Rock-solid engineering foundation. High-availability databases, serverless edge compute, zero-trust security, and automated CI/CD.",
+    chips: ["PostgreSQL", "Next.js 16", "Supabase", "Edge Compute"],
     accent: "#0F766E",
-    projects: ["DataMesh", "SecureLayer"],
+    metric: "99.9% Production SLA",
   },
-] as const;
+];
 
 export default function WhatWeBuild() {
   const sectionRef = useRef<HTMLElement>(null);
-  const panelRef   = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-  const current = CATEGORIES[active];
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   useGSAP(() => {
-    ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: "top 70%",
-      onEnter: () => {
-        gsap.from("[data-wwb-tag]",      { opacity: 0, y: 16, duration: 0.6, ease: "power3.out" });
-        gsap.from("[data-wwb-headline]", { opacity: 0, y: 32, duration: 0.7, delay: 0.1, ease: "power3.out" });
-        gsap.from("[data-wwb-copy]",     { opacity: 0, y: 20, duration: 0.6, delay: 0.25, ease: "power3.out" });
-        gsap.from("[data-wwb-cat]",      { opacity: 0, y: 12, duration: 0.5, stagger: 0.07, delay: 0.3, ease: "power3.out" });
-      },
-    });
-  }, { scope: sectionRef });
+    const section = sectionRef.current;
+    if (!section) return;
 
-  const handleCat = (i: number) => {
-    if (!panelRef.current) { setActive(i); return; }
-    gsap.to(panelRef.current, {
-      opacity: 0, y: 10, duration: 0.18, ease: "power2.in",
-      onComplete: () => {
-        setActive(i);
-        gsap.fromTo(panelRef.current,
-          { opacity: 0, y: -10 },
-          { opacity: 1, y: 0, duration: 0.28, ease: "power3.out" }
-        );
-      },
-    });
-  };
+    gsap.fromTo(
+      "[data-wwb-tag]",
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", clearProps: "all" }
+    );
+    gsap.fromTo(
+      "[data-wwb-headline]",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, delay: 0.1, ease: "power3.out", clearProps: "all" }
+    );
+    gsap.fromTo(
+      "[data-wwb-card]",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        stagger: 0.06,
+        delay: 0.15,
+        ease: "power3.out",
+        clearProps: "all",
+      }
+    );
+  }, { scope: sectionRef });
 
   return (
     <section
       ref={sectionRef}
       id="what-we-build"
       className="section"
-      style={{ backgroundColor: "var(--color-primary)", position: "relative" }}
+      style={{
+        backgroundColor: "var(--color-bg-base)",
+        position: "relative",
+        borderTop: "1px solid var(--color-border)",
+      }}
     >
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-        background: "linear-gradient(to right, transparent, var(--color-border) 30%, var(--color-border) 70%, transparent)",
-      }} />
+      <div className="container" style={{ position: "relative", zIndex: 2 }}>
+        {/* Header Block */}
+        <div style={{ maxWidth: "700px", marginBottom: "var(--space-16)" }}>
+          <div data-wwb-tag style={{ marginBottom: "var(--space-4)" }}>
+            <span className="section-label">
+              Capabilities &amp; Engineering Scope
+            </span>
+          </div>
 
-      <div className="container">
-        {/* Header */}
-        <div style={{ maxWidth: "600px", marginBottom: "var(--space-20)" }}>
-          <span data-wwb-tag className="section-label" style={{ marginBottom: "var(--space-6)", display: "flex" }}>
-            What we build
-          </span>
           <h2
             data-wwb-headline
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "clamp(2rem, 4.5vw, 3.5rem)",
-              fontWeight: 700,
-              letterSpacing: "-0.03em",
-              color: "var(--color-light)",
+              fontSize: "clamp(2.25rem, 5vw, 4rem)",
+              fontWeight: 800,
               lineHeight: 1.05,
-              marginBottom: "var(--space-6)",
+              letterSpacing: "-0.035em",
+              color: "var(--color-light)",
             }}
           >
-            Six categories.<br />
-            One approach.
+            Engineering specialized software for complex operations.
           </h2>
-          <p
-            data-wwb-copy
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "clamp(1rem, 1.3vw, 1.05rem)",
-              lineHeight: 1.75,
-              color: "var(--color-muted)",
-            }}
-          >
-            Everything we build starts with the same question: what&apos;s the underlying
-            process, and how should it actually work?
-          </p>
         </div>
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: "var(--space-12)",
-          alignItems: "start",
-        }}
-          className="lg:!grid-cols-[240px_1fr]"
+        {/* 6-Card Bento Grid */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            gap: "var(--space-6)",
+          }}
+          className="md:!grid-cols-2 lg:!grid-cols-3"
         >
-          {/* Category list */}
-          <nav style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            {CATEGORIES.map((cat, i) => (
-              <button
-                key={cat.id}
-                data-wwb-cat
-                onClick={() => handleCat(i)}
+          {CAPABILITIES.map((cap, i) => {
+            const isHovered = hoveredIdx === i;
+
+            return (
+              <div
+                key={cap.abbr}
+                data-wwb-card
+                onMouseEnter={() => setHoveredIdx(i)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                className="glass-card"
                 style={{
+                  padding: "var(--space-8)",
+                  borderRadius: "var(--radius-2xl)",
+                  backgroundColor: "var(--color-bg-card)",
+                  border: isHovered ? `1.5px solid ${cap.accent}` : "1px solid var(--color-border)",
+                  boxShadow: isHovered ? `0 0 35px ${cap.accent}25, var(--shadow-lg)` : "var(--shadow-sm)",
                   display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-4)",
-                  width: "100%",
-                  padding: "var(--space-3) var(--space-4)",
-                  border: "1px solid transparent",
-                  borderRadius: "var(--radius-lg)",
-                  backgroundColor: active === i ? `${cat.accent}10` : "transparent",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "all 200ms ease",
-                  borderColor: active === i ? `${cat.accent}30` : "transparent",
-                }}
-                onMouseEnter={e => {
-                  if (active !== i) e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.03)";
-                }}
-                onMouseLeave={e => {
-                  if (active !== i) e.currentTarget.style.backgroundColor = "transparent";
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  transition: "all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  transform: isHovered ? "translateY(-4px)" : "none",
                 }}
               >
-                <span style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  color: active === i ? cat.accent : "var(--color-gray-700)",
-                  minWidth: "20px",
-                  transition: "color 200ms ease",
-                }}>
-                  {cat.abbr}
-                </span>
-                <span style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: "var(--text-sm)",
-                  fontWeight: active === i ? 500 : 400,
-                  color: active === i ? "var(--color-light)" : "var(--color-muted)",
-                  transition: "color 200ms ease, font-weight 200ms ease",
-                }}>
-                  {cat.label}
-                </span>
-              </button>
-            ))}
-          </nav>
-
-          {/* Detail panel */}
-          <div
-            ref={panelRef}
-            style={{
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-xl)",
-              backgroundColor: "rgba(11,18,32,0.5)",
-              padding: "var(--space-10)",
-              minHeight: "380px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-6)" }}>
-              <div style={{
-                width: 10, height: 10, borderRadius: "50%",
-                backgroundColor: current.accent,
-                boxShadow: `0 0 10px ${current.accent}60`,
-              }} />
-              <span style={{
-                fontFamily: "var(--font-mono)", fontSize: "10px",
-                letterSpacing: "0.1em", textTransform: "uppercase",
-                color: "var(--color-muted)",
-              }}>
-                {current.abbr} — {current.label}
-              </span>
-            </div>
-
-            <h3 style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
-              fontWeight: 700,
-              letterSpacing: "-0.025em",
-              color: "var(--color-light)",
-              lineHeight: 1.15,
-              marginBottom: "var(--space-6)",
-            }}>
-              {current.label}
-            </h3>
-
-            <p style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "var(--text-sm)",
-              lineHeight: 1.75,
-              color: "var(--color-muted)",
-              marginBottom: "var(--space-10)",
-              maxWidth: "540px",
-            }}>
-              {current.description}
-            </p>
-
-            {/* Capabilities */}
-            <div style={{ marginBottom: "var(--space-10)" }}>
-              <div style={{
-                fontFamily: "var(--font-mono)", fontSize: "9px",
-                letterSpacing: "0.1em", textTransform: "uppercase",
-                color: "var(--color-gray-600)",
-                marginBottom: "var(--space-4)",
-              }}>
-                Capabilities
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-                {current.capabilities.map(cap => (
-                  <span
-                    key={cap}
+                <div>
+                  {/* Top Index & Metric */}
+                  <div
                     style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "10px",
-                      fontWeight: 500,
-                      letterSpacing: "0.04em",
-                      color: current.accent,
-                      backgroundColor: `${current.accent}10`,
-                      border: `1px solid ${current.accent}25`,
-                      borderRadius: "var(--radius-sm)",
-                      padding: "3px 10px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: "var(--space-6)",
                     }}
                   >
-                    {cap}
-                  </span>
-                ))}
-              </div>
-            </div>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "14px",
+                        fontWeight: 800,
+                        color: cap.accent,
+                      }}
+                    >
+                      {cap.abbr}
+                    </span>
 
-            <a
-              href="#contact"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "var(--space-2)",
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: current.accent,
-                textDecoration: "none",
-                transition: "opacity 200ms ease",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
-              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
-            >
-              Start a project in this area ↗
-            </a>
-          </div>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "10px",
+                        fontWeight: 700,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        color: cap.accent,
+                        padding: "3px 8px",
+                        borderRadius: "var(--radius-full)",
+                        backgroundColor: `${cap.accent}18`,
+                        border: `1px solid ${cap.accent}40`,
+                      }}
+                    >
+                      {cap.metric}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h3
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: "1.35rem",
+                      fontWeight: 800,
+                      color: "var(--color-light)",
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1.25,
+                      marginBottom: "var(--space-3)",
+                    }}
+                  >
+                    {cap.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: "clamp(0.95rem, 1.1vw, 1.05rem)",
+                      lineHeight: 1.65,
+                      color: "var(--color-muted)",
+                      marginBottom: "var(--space-6)",
+                    }}
+                  >
+                    {cap.desc}
+                  </p>
+                </div>
+
+                {/* Capability Chips */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", paddingTop: "var(--space-4)", borderTop: "1px solid var(--color-border)" }}>
+                  {cap.chips.map((chip) => (
+                    <span
+                      key={chip}
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "10px",
+                        fontWeight: 500,
+                        padding: "4px 8px",
+                        borderRadius: "var(--radius-xs)",
+                        backgroundColor: "var(--color-bg-subtle)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-light)",
+                      }}
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

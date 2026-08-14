@@ -13,7 +13,7 @@ export default function WorkPage() {
   return (
     <>
       <Navigation />
-      <main style={{ backgroundColor: "var(--color-dark)", minHeight: "100vh" }}>
+      <main style={{ backgroundColor: "var(--color-bg-base)", minHeight: "100vh" }}>
 
         {/* ── Header ─────────────────────────────────────── */}
         <section

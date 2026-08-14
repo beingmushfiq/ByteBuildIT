@@ -123,7 +123,7 @@ export default function WorkList() {
                   fontSize: "var(--text-xs)",
                   fontWeight: 600,
                   letterSpacing: "0.1em",
-                  color: "var(--color-gray-700)",
+                  color: "var(--color-muted)",
                   transition: `color 200ms ease`,
                 }}
               >
@@ -175,7 +175,7 @@ export default function WorkList() {
                   fontSize: "9px",
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: "var(--color-gray-700)",
+                  color: "var(--color-muted)",
                 }}>
                   {project.year}
                 </span>
@@ -196,7 +196,7 @@ export default function WorkList() {
                         fontFamily: "var(--font-mono)",
                         fontSize: "9px",
                         letterSpacing: "0.06em",
-                        color: "var(--color-gray-600)",
+                        color: "var(--color-muted)",
                       }}>
                         {m.label}
                       </div>

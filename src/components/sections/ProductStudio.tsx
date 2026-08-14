@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -10,188 +10,254 @@ gsap.registerPlugin(ScrollTrigger);
 const PIPELINE = [
   {
     step: "01",
-    label: "Problem",
-    desc: "A real operational inefficiency in an existing business.",
-    color: "var(--color-muted)",
+    label: "Friction Discovery",
+    desc: "We diagnose a tangible operational bottleneck that drains labor hours, induces human error, or caps organizational growth.",
+    badge: "Operational Audit",
+    color: "#2E4AF9",
   },
   {
     step: "02",
-    label: "System",
-    desc: "We design and build the software system that solves it.",
+    label: "Custom Architecture",
+    desc: "We architect and engineer a purpose-built software system tailored specifically to your exact workflow constraints.",
+    badge: "Production Engine",
     color: "#4A62FF",
   },
   {
     step: "03",
-    label: "Pattern",
-    desc: "The solution reveals a reusable structural pattern.",
+    label: "Pattern Extraction",
+    desc: "The proven solution reveals an underlying architectural blueprint that generalizes across an entire vertical industry.",
+    badge: "Structural Framework",
     color: "#7C3AED",
   },
   {
     step: "04",
-    label: "Product",
-    desc: "The pattern becomes a standalone product offering.",
+    label: "Productization",
+    desc: "We engineer a multi-tenant, cloud-native digital product complete with enterprise authentication, billing, and API endpoints.",
+    badge: "Commercial Software",
     color: "#059669",
   },
   {
     step: "05",
-    label: "SaaS",
-    desc: "The product scales to serve an entire market segment.",
+    label: "Market Scaling",
+    desc: "The digital product scales autonomously, generating recurring software value and transforming internal systems into industry benchmarks.",
+    badge: "SaaS Enterprise",
     color: "#D97706",
   },
-] as const;
+];
 
 export default function ProductStudio() {
   const sectionRef = useRef<HTMLElement>(null);
+  const [activeStep, setActiveStep] = useState(1);
 
   useGSAP(() => {
-    ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: "top 70%",
-      onEnter: () => {
-        gsap.from("[data-ps-tag]",      { opacity: 0, y: 16, duration: 0.6, ease: "power3.out" });
-        gsap.from("[data-ps-headline]", { opacity: 0, y: 36, duration: 0.8, delay: 0.1, ease: "power3.out" });
-        gsap.from("[data-ps-copy]",     { opacity: 0, y: 20, duration: 0.6, delay: 0.3, ease: "power3.out" });
-        gsap.from("[data-ps-step]",     { opacity: 0, x: -24, duration: 0.6, stagger: 0.12, delay: 0.4, ease: "power3.out" });
-        gsap.from("[data-ps-connector]",{ scaleY: 0, duration: 0.5, stagger: 0.12, delay: 0.5, ease: "power2.inOut", transformOrigin: "top center" });
-      },
-    });
+    const section = sectionRef.current;
+    if (!section) return;
+
+    gsap.fromTo(
+      "[data-ps-tag]",
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", clearProps: "all" }
+    );
+    gsap.fromTo(
+      "[data-ps-headline]",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, delay: 0.1, ease: "power3.out", clearProps: "all" }
+    );
+    gsap.fromTo(
+      "[data-ps-pipeline]",
+      { opacity: 0, y: 24 },
+      { opacity: 1, y: 0, duration: 0.6, delay: 0.15, ease: "power3.out", clearProps: "all" }
+    );
   }, { scope: sectionRef });
 
   return (
     <section
       ref={sectionRef}
       className="section"
-      style={{ backgroundColor: "var(--color-dark)", position: "relative" }}
+      style={{
+        backgroundColor: "var(--color-bg-surface)",
+        position: "relative",
+        borderTop: "1px solid var(--color-border)",
+      }}
     >
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-        background: "linear-gradient(to right, transparent, var(--color-border) 30%, var(--color-border) 70%, transparent)",
-      }} />
-
-      <div className="container">
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: "var(--space-20)",
-          alignItems: "center",
-        }}
-          className="lg:!grid-cols-[1fr_1fr]"
+      <div className="container" style={{ position: "relative", zIndex: 2 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            gap: "var(--space-16)",
+            alignItems: "center",
+          }}
+          className="lg:!grid-cols-[1fr_1.1fr]"
         >
-          {/* Left — copy */}
+          {/* Left Column: Narrative */}
           <div>
-            <span data-ps-tag className="section-label" style={{ marginBottom: "var(--space-6)", display: "flex" }}>
-              Product studio
-            </span>
+            <div data-ps-tag style={{ marginBottom: "var(--space-4)" }}>
+              <span className="section-label">
+                Product Studio Model
+              </span>
+            </div>
 
             <h2
               data-ps-headline
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(2rem, 4.5vw, 3.5rem)",
-                fontWeight: 700,
-                letterSpacing: "-0.03em",
+                fontSize: "clamp(2.25rem, 5vw, 3.75rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.035em",
                 color: "var(--color-light)",
-                lineHeight: 1.05,
-                marginBottom: "var(--space-8)",
+                lineHeight: 1.08,
+                marginBottom: "var(--space-6)",
               }}
             >
-              The best systems<br />
-              become products.
+              The best internal systems become market-leading products.
             </h2>
 
             <p
-              data-ps-copy
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "clamp(1rem, 1.3vw, 1.05rem)",
+                fontSize: "clamp(1.05rem, 1.3vw, 1.15rem)",
                 lineHeight: 1.75,
                 color: "var(--color-muted)",
-                maxWidth: "460px",
+                marginBottom: "var(--space-8)",
               }}
             >
-              We don&apos;t just build software for clients. When a system we design solves
-              a problem well enough, we build it into a product that can serve an entire industry.
-              That&apos;s the pipeline.
+              We don&apos;t just build one-off software. When an operational system solves a core
+              business problem with exceptional efficiency, we extract the underlying pattern and productize
+              it into standalone software built for industry scale.
             </p>
+
+            <div
+              style={{
+                padding: "var(--space-6)",
+                borderRadius: "var(--radius-xl)",
+                backgroundColor: "var(--color-bg-card)",
+                border: "1px solid var(--color-border)",
+                boxShadow: "var(--shadow-md)",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--color-accent)",
+                  marginBottom: "var(--space-2)",
+                }}
+              >
+                The Studio Advantage
+              </div>
+
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "1.15rem",
+                  fontWeight: 700,
+                  color: "var(--color-light)",
+                  lineHeight: 1.4,
+                }}
+              >
+                Battle-tested in real operations before writing a single line of SaaS marketing copy.
+              </div>
+            </div>
           </div>
 
-          {/* Right — animated pipeline */}
-          <div style={{ position: "relative" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-              {PIPELINE.map((item, i) => (
-                <div key={item.step}>
-                  {/* Step */}
+          {/* Right Column: Interactive 5-Step Pipeline Circuit */}
+          <div
+            data-ps-pipeline
+            className="glass-card"
+            style={{
+              padding: "var(--space-8)",
+              borderRadius: "var(--radius-2xl)",
+              backgroundColor: "var(--color-bg-card)",
+              border: "1px solid var(--color-border)",
+              boxShadow: "var(--shadow-xl)",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+              {PIPELINE.map((item, idx) => {
+                const isActive = activeStep === idx;
+
+                return (
                   <div
-                    data-ps-step
+                    key={item.step}
+                    onClick={() => setActiveStep(idx)}
                     style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "var(--space-5)",
-                      padding: "var(--space-5) 0",
+                      padding: "16px 20px",
+                      borderRadius: "var(--radius-xl)",
+                      backgroundColor: isActive ? `${item.color}14` : "var(--color-bg-subtle)",
+                      border: isActive ? `1.5px solid ${item.color}` : "1px solid var(--color-border)",
+                      boxShadow: isActive ? `0 0 25px ${item.color}20` : "none",
+                      cursor: "pointer",
+                      transition: "all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      transform: isActive ? "translateX(6px)" : "none",
                     }}
                   >
-                    {/* Number + connector column */}
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                      <div style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        border: `1px solid ${item.color}40`,
-                        backgroundColor: `${item.color}10`,
+                    <div
+                      style={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}>
-                        <span style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "9px",
-                          fontWeight: 600,
-                          letterSpacing: "0.06em",
-                          color: item.color,
-                        }}>
+                        justifyContent: "space-between",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span
+                          style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "12px",
+                            fontWeight: 800,
+                            color: item.color,
+                            padding: "2px 8px",
+                            borderRadius: "var(--radius-xs)",
+                            backgroundColor: `${item.color}20`,
+                          }}
+                        >
                           {item.step}
                         </span>
+
+                        <span
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "1.1rem",
+                            fontWeight: 700,
+                            color: "var(--color-light)",
+                          }}
+                        >
+                          {item.label}
+                        </span>
                       </div>
+
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                          color: item.color,
+                        }}
+                      >
+                        {item.badge}
+                      </span>
                     </div>
 
-                    {/* Content */}
-                    <div style={{ paddingTop: "var(--space-1)" }}>
-                      <div style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: "var(--text-xl)",
-                        fontWeight: 700,
-                        letterSpacing: "-0.02em",
-                        color: item.color === "var(--color-muted)" ? "var(--color-light)" : item.color,
-                        marginBottom: "var(--space-1)",
-                      }}>
-                        {item.label}
-                      </div>
-                      <p style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: "var(--text-sm)",
-                        lineHeight: 1.65,
-                        color: "var(--color-muted)",
-                      }}>
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Connector line (between steps) */}
-                  {i < PIPELINE.length - 1 && (
-                    <div
-                      data-ps-connector
+                    <p
                       style={{
-                        marginLeft: "17px",
-                        width: "1px",
-                        height: "var(--space-6)",
-                        background: `linear-gradient(to bottom, ${item.color}40, ${PIPELINE[i + 1].color}40)`,
+                        fontFamily: "var(--font-body)",
+                        fontSize: "13px",
+                        lineHeight: 1.6,
+                        color: isActive ? "var(--color-light)" : "var(--color-muted)",
+                        margin: 0,
                       }}
-                    />
-                  )}
-                </div>
-              ))}
+                    >
+                      {item.desc}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

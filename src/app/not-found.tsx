@@ -14,7 +14,7 @@ export default function NotFound() {
   return (
     <main
       className="flex min-h-screen flex-col items-center justify-center"
-      style={{ backgroundColor: "var(--color-primary)" }}
+      style={{ backgroundColor: "var(--color-bg-base)" }}
     >
       {/* Background grid */}
       <div

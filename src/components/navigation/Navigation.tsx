@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const NAV_LINKS = [
   { label: "Work", href: "#work" },
@@ -73,21 +74,17 @@ export default function Navigation() {
         ref={navRef as React.RefObject<HTMLElement>}
         className="fixed left-0 right-0 top-0 z-[100]"
         style={{
-          transition: `background-color ${300}ms cubic-bezier(0.25,0.1,0.25,1),
-                       border-color ${300}ms cubic-bezier(0.25,0.1,0.25,1),
-                       backdrop-filter ${300}ms cubic-bezier(0.25,0.1,0.25,1)`,
-          backgroundColor: scrolled
-            ? "rgba(5, 8, 15, 0.92)"
-            : "transparent",
+          transition: `background-color 300ms cubic-bezier(0.25,0.1,0.25,1),
+                       border-color 300ms cubic-bezier(0.25,0.1,0.25,1),
+                       backdrop-filter 300ms cubic-bezier(0.25,0.1,0.25,1)`,
+          backgroundColor: scrolled ? "var(--nav-bg)" : "transparent",
           backdropFilter: scrolled ? "blur(20px) saturate(1.4)" : "none",
-          borderBottom: scrolled
-            ? "1px solid rgba(255,255,255,0.07)"
-            : "1px solid transparent",
+          borderBottom: scrolled ? "1px solid var(--nav-border)" : "1px solid transparent",
         }}
         role="banner"
       >
         <div
-          className="mx-auto flex max-w-[1320px] items-center justify-between px-6 md:px-8 xl:px-12"
+          className="relative mx-auto flex max-w-[1320px] items-center justify-between px-6 md:px-8 xl:px-12"
           style={{
             height: scrolled ? "52px" : "68px",
             transition: `height 300ms cubic-bezier(0.25,0.1,0.25,1)`,
@@ -107,6 +104,7 @@ export default function Navigation() {
               display: "flex",
               alignItems: "center",
               gap: "0",
+              zIndex: 2,
             }}
           >
             <span style={{ color: "var(--color-light)" }}>BYTE</span>
@@ -114,8 +112,12 @@ export default function Navigation() {
             <span style={{ color: "var(--color-accent)" }}>IT</span>
           </Link>
 
-          {/* Desktop links */}
-          <div ref={linksRef} className="hidden items-center gap-8 md:flex">
+          {/* Desktop links (Geometrically centered) */}
+          <div
+            ref={linksRef}
+            className="hidden items-center gap-8 md:flex md:absolute md:left-1/2 md:-translate-x-1/2"
+            style={{ zIndex: 1 }}
+          >
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
@@ -139,78 +141,86 @@ export default function Navigation() {
             ))}
           </div>
 
-          {/* Desktop CTA */}
-          <Link
-            ref={ctaRef}
-            href="#contact"
-            className="group hidden md:inline-flex"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-xs)",
-              fontWeight: 500,
-              letterSpacing: "0.07em",
-              textTransform: "uppercase",
-              textDecoration: "none",
-              color: "var(--color-white)",
-              backgroundColor: "var(--color-accent)",
-              border: "1px solid var(--color-accent)",
-              padding: "0.55rem 1.1rem",
-              borderRadius: "var(--radius-md)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              transition: "background-color 200ms ease, box-shadow 200ms ease, transform 200ms ease",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = "var(--color-accent-hover)";
-              e.currentTarget.style.boxShadow = "var(--shadow-glow)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = "var(--color-accent)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          >
-            Start a project
-            <span
+          {/* Desktop Right Actions (CTA + Theme Toggle aligned) */}
+          <div className="hidden items-center gap-3 md:flex" style={{ zIndex: 2 }}>
+            <Link
+              ref={ctaRef}
+              href="#contact"
+              className="group inline-flex"
               style={{
-                display: "inline-block",
-                transition: "transform 200ms var(--ease-spring)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-xs)",
+                fontWeight: 500,
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                textDecoration: "none",
+                color: "var(--color-white)",
+                backgroundColor: "var(--color-accent)",
+                border: "1px solid var(--color-accent)",
+                padding: "0.55rem 1.1rem",
+                borderRadius: "var(--radius-md)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                height: "36px",
+                transition: "background-color 200ms ease, box-shadow 200ms ease, transform 200ms ease",
               }}
-              className="group-hover:[transform:translate(2px,-2px)]"
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = "var(--color-accent-hover)";
+                e.currentTarget.style.boxShadow = "var(--shadow-glow)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = "var(--color-accent)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
             >
-              ↗
-            </span>
-          </Link>
+              Start a project
+              <span
+                style={{
+                  display: "inline-block",
+                  transition: "transform 200ms var(--ease-spring)",
+                }}
+                className="group-hover:[transform:translate(2px,-2px)]"
+              >
+                ↗
+              </span>
+            </Link>
 
-          {/* Mobile trigger */}
-          <button
-            className="flex flex-col items-center justify-center gap-[5px] md:hidden"
-            style={{ width: 40, height: 40, background: "none", border: "none", cursor: "pointer" }}
-            onClick={() => setMenuOpen(v => !v)}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-          >
-            <span style={{
-              display: "block", height: "1px", width: "22px",
-              backgroundColor: "var(--color-light)",
-              transition: "transform 300ms, opacity 200ms",
-              transformOrigin: "center",
-              transform: menuOpen ? "translateY(6px) rotate(45deg)" : "none",
-            }} />
-            <span style={{
-              display: "block", height: "1px", width: "22px",
-              backgroundColor: "var(--color-light)",
-              transition: "opacity 200ms",
-              opacity: menuOpen ? 0 : 1,
-            }} />
-            <span style={{
-              display: "block", height: "1px", width: "22px",
-              backgroundColor: "var(--color-light)",
-              transition: "transform 300ms",
-              transformOrigin: "center",
-              transform: menuOpen ? "translateY(-6px) rotate(-45deg)" : "none",
-            }} />
-          </button>
+            <ThemeToggle variant="compact" />
+          </div>
+
+          {/* Mobile Right Bar (Theme Toggle + Hamburger) */}
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle variant="compact" />
+            <button
+              className="flex flex-col items-center justify-center gap-[5px]"
+              style={{ width: 40, height: 40, background: "none", border: "none", cursor: "pointer" }}
+              onClick={() => setMenuOpen(v => !v)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+            >
+              <span style={{
+                display: "block", height: "1px", width: "22px",
+                backgroundColor: "var(--color-light)",
+                transition: "transform 300ms, opacity 200ms",
+                transformOrigin: "center",
+                transform: menuOpen ? "translateY(6px) rotate(45deg)" : "none",
+              }} />
+              <span style={{
+                display: "block", height: "1px", width: "22px",
+                backgroundColor: "var(--color-light)",
+                transition: "opacity 200ms",
+                opacity: menuOpen ? 0 : 1,
+              }} />
+              <span style={{
+                display: "block", height: "1px", width: "22px",
+                backgroundColor: "var(--color-light)",
+                transition: "transform 300ms",
+                transformOrigin: "center",
+                transform: menuOpen ? "translateY(-6px) rotate(-45deg)" : "none",
+              }} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -224,7 +234,7 @@ export default function Navigation() {
           position: "fixed",
           inset: 0,
           zIndex: 90,
-          backgroundColor: "var(--color-dark)",
+          backgroundColor: "var(--color-bg-base)",
           flexDirection: "column",
           justifyContent: "center",
           paddingLeft: "var(--space-8)",
@@ -237,7 +247,7 @@ export default function Navigation() {
           style={{
             position: "absolute",
             inset: 0,
-            backgroundImage: "radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(var(--color-grid-dots) 1px, transparent 1px)",
             backgroundSize: "28px 28px",
             pointerEvents: "none",
           }}
@@ -249,7 +259,7 @@ export default function Navigation() {
           right: "-10%",
           width: "50vw",
           height: "50vw",
-          background: "radial-gradient(circle, rgba(46,74,249,0.06) 0%, transparent 70%)",
+          background: "radial-gradient(circle, var(--color-glow-backdrop) 0%, transparent 70%)",
           pointerEvents: "none",
         }} />
 
@@ -266,7 +276,7 @@ export default function Navigation() {
                     fontSize: "clamp(2rem, 8vw, 3rem)",
                     fontWeight: 700,
                     letterSpacing: "-0.025em",
-                    color: "var(--color-gray-400)",
+                    color: "var(--color-muted)",
                     textDecoration: "none",
                     padding: "var(--space-3) 0",
                     borderBottom: "1px solid var(--color-border)",
@@ -274,7 +284,7 @@ export default function Navigation() {
                     lineHeight: 1.2,
                   }}
                   onMouseEnter={e => (e.currentTarget.style.color = "var(--color-light)")}
-                  onMouseLeave={e => (e.currentTarget.style.color = "var(--color-gray-400)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--color-muted)")}
                 >
                   {link.label}
                 </Link>
@@ -282,7 +292,7 @@ export default function Navigation() {
             ))}
           </ul>
 
-          <div style={{ marginTop: "var(--space-10)" }}>
+          <div style={{ marginTop: "var(--space-8)", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-4)" }}>
             <Link
               href="#contact"
               onClick={() => setMenuOpen(false)}
@@ -304,6 +314,8 @@ export default function Navigation() {
             >
               Start a project ↗
             </Link>
+
+            <ThemeToggle variant="expanded" showLabel />
           </div>
         </nav>
       </div>
